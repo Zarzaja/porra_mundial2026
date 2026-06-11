@@ -397,8 +397,46 @@
       }
     }
 
-    function exportData() {
-      window.location.href = '/api/admin/export';
+    async function exportData() {
+      try {
+        const session = getSession();
+        if (!session) throw new Error('Sesión expirada');
+
+        const response = await fetch('/api/admin/export', {
+          method: 'GET',
+          headers: {
+            'x-username': session.user.username,
+            'x-access-code': session.access_code
+          }
+        });
+
+        if (response.status === 401) {
+          clearSession();
+          throw new Error('Sesión expirada');
+        }
+
+        if (!response.ok) {
+          let errorMessage = 'Error al exportar datos';
+          try {
+            const errorData = await response.json();
+            errorMessage = errorData.error || errorMessage;
+          } catch {}
+          throw new Error(errorMessage);
+        }
+
+        const blob = await response.blob();
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = `mundial_backup_${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+        URL.revokeObjectURL(url);
+        showToast('Datos exportados correctamente');
+      } catch (err) {
+        showToast(err.message || 'Error al exportar datos', true);
+      }
     }
 
     async function importData(fileInput) {

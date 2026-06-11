@@ -48,12 +48,21 @@ const upload = multer({
 // JSON Database helper with sequential queue to prevent corruption
 let dbQueue = Promise.resolve();
 function readDb() {
+  // #region debug-point A:read-db
+  (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'A',location:'server.js:readDb:entry',msg:'[DEBUG] readDb entry',data:{dbPath:DB_PATH,dbSeedPath:DB_SEED_PATH,isRender:IS_RENDER,dbExists:fs.existsSync(DB_PATH),seedExists:fs.existsSync(DB_SEED_PATH)},ts:Date.now()})}).catch(()=>{})})();
+  // #endregion
   ensureRuntimeDb();
   if (!fs.existsSync(DB_PATH)) {
+    // #region debug-point A:read-db-missing
+    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'A',location:'server.js:readDb:missing',msg:'[DEBUG] readDb missing db file',data:{dbPath:DB_PATH},ts:Date.now()})}).catch(()=>{})})();
+    // #endregion
     return null;
   }
   const data = fs.readFileSync(DB_PATH, 'utf8');
   const db = JSON.parse(data);
+  // #region debug-point B:read-db-success
+  (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'B',location:'server.js:readDb:parsed',msg:'[DEBUG] readDb parsed successfully',data:{hasUsers:Array.isArray(db?.users),hasMatches:Array.isArray(db?.matches),hasPredictions:Array.isArray(db?.predictions),hasSpecialPredictions:Array.isArray(db?.special_predictions),hasSettings:Boolean(db?.settings),hasTeams:Array.isArray(db?.teams)},ts:Date.now()})}).catch(()=>{})})();
+  // #endregion
   
   // Initialize missing sections
   if (!db.predictions) db.predictions = [];
@@ -516,6 +525,10 @@ function authUser(req, res, next) {
 function authAdmin(req, res, next) {
   const username = req.headers['x-username'];
   const accessCode = req.headers['x-access-code'];
+
+  if (!username || !accessCode) {
+    return res.status(401).json({ error: 'Faltan credenciales de administrador' });
+  }
 
   if (username === 'prisma' && accessCode === 'prisma') {
     req.user = { id: 0, username: 'prisma', fullname: 'Administrador', is_admin: true };
@@ -1225,6 +1238,9 @@ app.get('/api/admin/users', authAdmin, (req, res) => {
 app.get('/api/admin/export', authAdmin, (req, res) => {
   try {
     const db = readDb();
+    // #region debug-point C:export-entry
+    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'C',location:'server.js:/api/admin/export:entry',msg:'[DEBUG] export endpoint entered',data:{adminUser:req.user?.username||null,dbIsNull:db===null,keys:db?Object.keys(db):[]},ts:Date.now()})}).catch(()=>{})})();
+    // #endregion
     const exportData = {
       exported_at: new Date().toISOString(),
       version: '1.0.0',
@@ -1237,8 +1253,14 @@ app.get('/api/admin/export', authAdmin, (req, res) => {
     };
     res.setHeader('Content-Disposition', `attachment; filename="mundial_backup_${new Date().toISOString().split('T')[0]}.json"`);
     res.setHeader('Content-Type', 'application/json');
+    // #region debug-point D:export-ready
+    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'D',location:'server.js:/api/admin/export:ready',msg:'[DEBUG] export response ready',data:{users:Array.isArray(exportData.users)?exportData.users.length:null,matches:Array.isArray(exportData.matches)?exportData.matches.length:null,predictions:Array.isArray(exportData.predictions)?exportData.predictions.length:null,specialPredictions:Array.isArray(exportData.special_predictions)?exportData.special_predictions.length:null,teams:Array.isArray(exportData.teams)?exportData.teams.length:null},ts:Date.now()})}).catch(()=>{})})();
+    // #endregion
     res.json(exportData);
   } catch (err) {
+    // #region debug-point E:export-error
+    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'E',location:'server.js:/api/admin/export:catch',msg:'[DEBUG] export failed',data:{name:err?.name||null,message:err?.message||null,stack:String(err?.stack||'').split('\n').slice(0,4)},ts:Date.now()})}).catch(()=>{})})();
+    // #endregion
     console.error(err);
     res.status(500).json({ error: 'Error al exportar datos' });
   }
