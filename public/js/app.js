@@ -27,9 +27,40 @@ const flagMap = {
   'Inglaterra': '🏴', 'Croacia': '🇭🇷', 'Ghana': '🇬🇭', 'Panama': '🇵🇦'
 };
 
+const flagAliases = {
+  'México': 'Mexico',
+  'Sudáfrica': 'Sudafrica',
+  'Canadá': 'Canada',
+  'Haití': 'Haiti',
+  'Turquía': 'Turquia',
+  'Países Bajos': 'Paises Bajos',
+  'Japón': 'Japon',
+  'Bélgica': 'Belgica',
+  'Irán': 'Iran',
+  'España': 'Espania',
+  'República Democrática del Congo': 'Republica Democratica del Congo',
+  'Panamá': 'Panama'
+};
+
+function normalizeFlagKey(team) {
+  return String(team || '')
+    .trim()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '');
+}
+
 function getFlag(team) {
   if (!team) return '🏳️';
-  return flagMap[team] || '🏳️';
+  const rawTeam = String(team).trim();
+  const normalizedTeam = normalizeFlagKey(rawTeam);
+  const aliasedTeam = flagAliases[rawTeam] || flagAliases[normalizedTeam];
+
+  return (
+    flagMap[rawTeam] ||
+    flagMap[normalizedTeam] ||
+    flagMap[aliasedTeam] ||
+    '🏳️'
+  );
 }
 
 // Authentication Check

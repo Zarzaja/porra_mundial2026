@@ -111,6 +111,32 @@
 
           <div id="match-predictions-container" style="margin-top:1rem; display:none;">
             <h4 style="font-size:0.9rem; color:var(--accent-gold); margin-bottom:0.75rem;">📊 Predicciones de los Participantes</h4>
+            <div style="padding:1rem; margin-bottom:1rem; border:1px solid rgba(99,102,241,0.22); border-radius:var(--radius-sm); background:linear-gradient(180deg, rgba(99,102,241,0.08), rgba(255,255,255,0.03)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);">
+              <h5 style="margin-bottom:0.35rem; color:var(--accent-indigo);">Cargar o corregir predicción manual</h5>
+              <p style="margin-bottom:0.9rem; color:var(--text-muted); font-size:0.8rem;">Selecciona el usuario y guarda el marcador que te haya pasado por fuera de la app.</p>
+              <form onsubmit="submitAdminPredictionEdit(event)">
+                <div class="form-group">
+                  <label for="admin-prediction-user">Usuario</label>
+                  <select id="admin-prediction-user" class="form-input" required>
+                    <option value="">-- Selecciona usuario --</option>
+                  </select>
+                </div>
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem;">
+                  <div class="form-group">
+                    <label for="admin-prediction-goals1">Goles local</label>
+                    <input type="number" min="0" id="admin-prediction-goals1" class="form-input" required>
+                  </div>
+                  <div class="form-group">
+                    <label for="admin-prediction-goals2">Goles visitante</label>
+                    <input type="number" min="0" id="admin-prediction-goals2" class="form-input" required>
+                  </div>
+                </div>
+                <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:0.25rem;">
+                  <button type="submit" class="btn">Guardar Predicción</button>
+                  <button type="button" class="btn btn-secondary" onclick="resetAdminPredictionForm()">Limpiar</button>
+                </div>
+              </form>
+            </div>
             <div id="match-predictions-list"></div>
           </div>
         </div>
@@ -176,6 +202,32 @@
         <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">
           Ver qué votó cada usuario para campeón y Pichichi.
         </p>
+        <div style="padding:1rem; margin-bottom:1rem; border:1px solid rgba(245,158,11,0.22); border-radius:var(--radius-sm); background:linear-gradient(180deg, rgba(245,158,11,0.08), rgba(255,255,255,0.03)); box-shadow: inset 0 1px 0 rgba(255,255,255,0.05);">
+          <h5 style="margin-bottom:0.35rem; color:var(--accent-indigo);">Cargar o corregir predicción especial manual</h5>
+          <p style="margin-bottom:0.9rem; color:var(--text-muted); font-size:0.8rem;">Ideal para meter después lo que cada persona te dijo sobre campeón y goleador.</p>
+          <form onsubmit="submitAdminSpecialPredictionEdit(event)">
+            <div class="form-group">
+              <label for="admin-special-user">Usuario</label>
+              <select id="admin-special-user" class="form-input" required>
+                <option value="">-- Selecciona usuario --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="admin-special-champion">Campeón pronosticado</label>
+              <select id="admin-special-champion" class="form-input">
+                <option value="">-- Sin campeón --</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="admin-special-scorer">Máximo goleador pronosticado</label>
+              <input type="text" id="admin-special-scorer" class="form-input" placeholder="Nombre del goleador">
+            </div>
+            <div style="display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:0.25rem;">
+              <button type="submit" class="btn">Guardar Predicción Especial</button>
+              <button type="button" class="btn btn-secondary" onclick="resetAdminSpecialPredictionForm()">Limpiar</button>
+            </div>
+          </form>
+        </div>
         <button type="button" class="btn btn-secondary" onclick="loadSpecialVotes()" style="margin-bottom:1rem;">
           🔍 Ver Votaciones
         </button>
@@ -258,26 +310,39 @@
   <script>
     let adminMatches = [];
     let adminTeamsList = [];
+    let adminUsers = [];
     let selectedMatch = null;
 
     // Load Admin components
     async function initAdmin() {
       try {
-        // Fetch teams
-        adminTeamsList = await apiFetch('/api/teams');
+        const [teams, usersData, data] = await Promise.all([
+          apiFetch('/api/teams'),
+          apiFetch('/api/admin/users'),
+          apiFetch('/api/matches')
+        ]);
+        adminTeamsList = teams;
+        adminUsers = usersData.users.filter(u => !u.is_admin);
         
         // Populate special champion select
         const specSelect = document.getElementById('special-champion-select');
+        const adminSpecialChampionSelect = document.getElementById('admin-special-champion');
+        specSelect.innerHTML = '<option value="">-- Selecciona el país campeón --</option>';
+        adminSpecialChampionSelect.innerHTML = '<option value="">-- Sin campeón --</option>';
         adminTeamsList.forEach(t => {
           const opt = document.createElement('option');
           opt.value = t.name;
           opt.textContent = `${getFlag(t.name)} ${t.name}`;
           specSelect.appendChild(opt);
-        });
 
-        // Fetch matches and user state
-        const data = await apiFetch('/api/matches');
+          const adminOpt = document.createElement('option');
+          adminOpt.value = t.name;
+          adminOpt.textContent = `${getFlag(t.name)} ${t.name}`;
+          adminSpecialChampionSelect.appendChild(adminOpt);
+        });
         adminMatches = data.matches;
+
+        populateAdminUserSelects();
         
         renderAdminMatchesList();
         renderR32Configuration();
@@ -290,10 +355,25 @@
       }
     }
 
+    function populateAdminUserSelects() {
+      const userOptions = ['<option value="">-- Selecciona usuario --</option>']
+        .concat(adminUsers.map(u => `<option value="${u.id}">${u.fullname} (${u.team_name})</option>`))
+        .join('');
+      document.getElementById('admin-prediction-user').innerHTML = userOptions;
+      document.getElementById('admin-special-user').innerHTML = userOptions;
+    }
+
+    function encodeAdminPayload(data) {
+      return btoa(unescape(encodeURIComponent(JSON.stringify(data))));
+    }
+
+    function decodeAdminPayload(encoded) {
+      return JSON.parse(decodeURIComponent(escape(atob(encoded))));
+    }
+
     async function loadAdminSettings() {
       try {
-        const res = await fetch('/api/admin/settings', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } });
-        const data = await res.json();
+        const data = await apiFetch('/api/admin/settings');
         if (data.settings) {
           document.getElementById('special-locked-check').checked = data.settings.special_locked || false;
         }
@@ -323,6 +403,7 @@
               <th style="text-align:center; padding:0.5rem;">Equipo</th>
               <th style="text-align:center; padding:0.5rem;">Campeón</th>
               <th style="text-align:center; padding:0.5rem;">Goleador</th>
+              <th style="text-align:center; padding:0.5rem;">Acción</th>
             </tr>
           </thead>
           <tbody>`;
@@ -338,6 +419,9 @@
             <td style="padding:0.5rem; text-align:center;">${p.team_name}</td>
             <td style="padding:0.5rem; text-align:center; font-weight:600;">${p.champion_team ? getFlag(p.champion_team) + ' ' + p.champion_team : '-'}</td>
             <td style="padding:0.5rem; text-align:center; font-weight:600;">${p.top_scorer || '-'}</td>
+            <td style="padding:0.5rem; text-align:center;">
+              <button type="button" class="btn btn-secondary" style="padding:0.35rem 0.6rem;" onclick="prefillAdminSpecialPrediction('${encodeAdminPayload(p)}')">Editar</button>
+            </td>
           </tr>`;
         });
 
@@ -668,6 +752,7 @@
                 <th style="text-align:left; padding:0.5rem;">Usuario</th>
                 <th style="text-align:center; padding:0.5rem;">Predicción</th>
                 <th style="text-align:center; padding:0.5rem;">Puntos</th>
+                <th style="text-align:center; padding:0.5rem;">Acción</th>
               </tr>
             </thead>
             <tbody>`;
@@ -687,6 +772,9 @@
               <span style="background:rgba(245,158,11,0.2); color:var(--accent-gold); padding:0.15rem 0.5rem; border-radius:4px; font-weight:700;">
                 ${p.points} pts
               </span>
+            </td>
+            <td style="text-align:center; padding:0.5rem;">
+              <button type="button" class="btn btn-secondary" style="padding:0.35rem 0.6rem;" onclick="prefillAdminPrediction('${encodeAdminPayload(p)}')">Editar</button>
             </td>
           </tr>`;
         });
@@ -739,6 +827,44 @@
 
         renderAdminMatchesList();
         closeEditor();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    function prefillAdminPrediction(encodedPrediction) {
+      const prediction = decodeAdminPayload(encodedPrediction);
+      document.getElementById('admin-prediction-user').value = prediction.user_id;
+      document.getElementById('admin-prediction-goals1').value = prediction.goals1;
+      document.getElementById('admin-prediction-goals2').value = prediction.goals2;
+    }
+
+    function resetAdminPredictionForm() {
+      document.getElementById('admin-prediction-user').value = '';
+      document.getElementById('admin-prediction-goals1').value = '';
+      document.getElementById('admin-prediction-goals2').value = '';
+    }
+
+    async function submitAdminPredictionEdit(e) {
+      e.preventDefault();
+      if (!selectedMatch) {
+        showToast('Selecciona un partido primero', true);
+        return;
+      }
+
+      try {
+        await apiFetch('/api/admin/edit-prediction', 'POST', {
+          user_id: parseInt(document.getElementById('admin-prediction-user').value, 10),
+          match_id: selectedMatch.id,
+          goals1: parseInt(document.getElementById('admin-prediction-goals1').value, 10),
+          goals2: parseInt(document.getElementById('admin-prediction-goals2').value, 10)
+        });
+        showToast('Predicción del usuario guardada');
+        resetAdminPredictionForm();
+        await loadMatchPredictions();
+        if (document.getElementById('users-list-container').style.display === 'block') {
+          await loadUsersList();
+        }
       } catch (err) {
         showToast(err.message, true);
       }
@@ -828,6 +954,38 @@
       try {
         await apiFetch('/api/admin/special-results', 'POST', { champion, top_scorer });
         showToast('Resultados especiales aplicados. Puntuaciones actualizadas.');
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    function prefillAdminSpecialPrediction(encodedPrediction) {
+      const prediction = decodeAdminPayload(encodedPrediction);
+      document.getElementById('admin-special-user').value = prediction.user_id;
+      document.getElementById('admin-special-champion').value = prediction.champion_team || '';
+      document.getElementById('admin-special-scorer').value = prediction.top_scorer || '';
+    }
+
+    function resetAdminSpecialPredictionForm() {
+      document.getElementById('admin-special-user').value = '';
+      document.getElementById('admin-special-champion').value = '';
+      document.getElementById('admin-special-scorer').value = '';
+    }
+
+    async function submitAdminSpecialPredictionEdit(e) {
+      e.preventDefault();
+      try {
+        await apiFetch('/api/admin/edit-special-prediction', 'POST', {
+          user_id: parseInt(document.getElementById('admin-special-user').value, 10),
+          champion_team: document.getElementById('admin-special-champion').value,
+          top_scorer: document.getElementById('admin-special-scorer').value
+        });
+        showToast('Predicción especial guardada');
+        resetAdminSpecialPredictionForm();
+        await loadSpecialVotes();
+        if (document.getElementById('users-list-container').style.display === 'block') {
+          await loadUsersList();
+        }
       } catch (err) {
         showToast(err.message, true);
       }

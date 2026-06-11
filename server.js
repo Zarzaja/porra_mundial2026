@@ -781,14 +781,83 @@ app.post('/api/admin/edit-prediction', authAdmin, async (req, res) => {
   try {
     const { user_id, match_id, goals1, goals2 } = req.body;
     const db = readDb();
-    const pred = db.predictions.find(p => p.user_id === user_id && p.match_id === match_id);
-    if (!pred) return res.status(404).json({ error: 'Predicción no encontrada' });
-    pred.goals1 = parseInt(goals1, 10);
-    pred.goals2 = parseInt(goals2, 10);
+
+    const userId = parseInt(user_id, 10);
+    const g1 = parseInt(goals1, 10);
+    const g2 = parseInt(goals2, 10);
+
+    if (!Number.isInteger(userId) || !match_id) {
+      return res.status(400).json({ error: 'Usuario o partido inválido' });
+    }
+    if (!Number.isInteger(g1) || !Number.isInteger(g2) || g1 < 0 || g2 < 0) {
+      return res.status(400).json({ error: 'Los goles deben ser números válidos' });
+    }
+
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    const match = db.matches.find(m => m.id === match_id);
+    if (!match) return res.status(404).json({ error: 'Partido no encontrado' });
+
+    let pred = db.predictions.find(p => p.user_id === userId && p.match_id === match_id);
+    if (!pred) {
+      pred = {
+        user_id: userId,
+        match_id,
+        goals1: g1,
+        goals2: g2,
+        points: 0
+      };
+      db.predictions.push(pred);
+    } else {
+      pred.goals1 = g1;
+      pred.goals2 = g2;
+    }
+
+    recalculateScores(db);
     await writeDb(db);
-    res.json({ success: true });
+    res.json({ success: true, prediction: pred });
   } catch (err) {
+    console.error(err);
     res.status(500).json({ error: 'Error al actualizar' });
+  }
+});
+
+// Admin: Edit any user's special prediction
+app.post('/api/admin/edit-special-prediction', authAdmin, async (req, res) => {
+  try {
+    const { user_id, champion_team, top_scorer } = req.body;
+    const db = readDb();
+
+    const userId = parseInt(user_id, 10);
+    if (!Number.isInteger(userId)) {
+      return res.status(400).json({ error: 'Usuario inválido' });
+    }
+
+    const user = db.users.find(u => u.id === userId);
+    if (!user) return res.status(404).json({ error: 'Usuario no encontrado' });
+
+    let spec = db.special_predictions.find(sp => sp.user_id === userId);
+    if (!spec) {
+      spec = {
+        user_id: userId,
+        champion_team: null,
+        top_scorer: null,
+        points_champion: 0,
+        points_top_scorer: 0
+      };
+      db.special_predictions.push(spec);
+    }
+
+    spec.champion_team = champion_team ? String(champion_team).trim() : null;
+    spec.top_scorer = top_scorer ? String(top_scorer).trim() : null;
+
+    recalculateScores(db);
+    await writeDb(db);
+    res.json({ success: true, special_prediction: spec });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar predicción especial' });
   }
 });
 
