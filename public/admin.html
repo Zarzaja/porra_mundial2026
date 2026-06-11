@@ -167,6 +167,91 @@
           </button>
         </form>
       </div>
+
+      <!-- Special Predictions View -->
+      <div class="glass-card" style="margin-top: 2rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 1rem;">
+          👥 Votación de Predicciones Especiales
+        </h2>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">
+          Ver qué votó cada usuario para campeón y Pichichi.
+        </p>
+        <button type="button" class="btn btn-secondary" onclick="loadSpecialVotes()" style="margin-bottom:1rem;">
+          🔍 Ver Votaciones
+        </button>
+        <div id="special-votes-container" style="display:none;">
+          <div id="special-votes-list"></div>
+        </div>
+      </div>
+
+      <!-- Settings -->
+      <div class="glass-card" style="margin-top: 2rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 1rem;">
+          ⚙️ Configuración
+        </h2>
+        <form id="settings-form">
+          <div class="form-group">
+            <label style="display:flex; align-items:center; gap:0.75rem; cursor:pointer;">
+              <input type="checkbox" id="special-locked-check">
+              <span><strong>Bloquear predicciones especiales</strong></span>
+            </label>
+            <small style="color:var(--text-muted); font-size:0.75rem;">
+              Una vez activado, los usuarios no podrán cambiar su predicción de campeón y goleador.
+            </small>
+          </div>
+          <button type="submit" class="btn" style="margin-top:1rem;">
+            💾 Guardar Configuración
+          </button>
+        </form>
+      </div>
+
+      <!-- Users List -->
+      <div class="glass-card" style="margin-top: 2rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 1rem;">
+          👤 Lista de Usuarios
+        </h2>
+        <p style="color:var(--text-muted); font-size:0.85rem; margin-bottom:1rem;">
+          Ver usuarios registrados, códigos de acceso y gestionar.
+        </p>
+        <button type="button" class="btn btn-secondary" onclick="loadUsersList()" style="margin-bottom:1rem;">
+          📋 Ver Usuarios
+        </button>
+        <div id="users-list-container" style="display:none;">
+          <div id="users-list"></div>
+        </div>
+      </div>
+
+      <!-- Data Management -->
+      <div class="glass-card" style="margin-top: 2rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 1rem;">
+          💾 Gestión de Datos
+        </h2>
+        <div style="display:flex; gap:1rem; flex-wrap:wrap;">
+          <button type="button" class="btn" onclick="exportData()">
+            📥 Exportar Datos
+          </button>
+          <button type="button" class="btn btn-secondary" onclick="document.getElementById('import-file').click()">
+            📤 Importar Datos
+          </button>
+          <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(this)">
+        </div>
+        <p style="color:var(--text-muted); font-size:0.75rem; margin-top:0.75rem;">
+          Exporta los datos antes de actualizar la app. Así podrás restaurarlos si es necesario.
+        </p>
+      </div>
+
+      <!-- Statistics -->
+      <div class="glass-card" style="margin-top: 2rem; margin-bottom: 2rem;">
+        <h2 style="font-size: 1.3rem; font-weight: 700; color: var(--accent-gold); margin-bottom: 1rem;">
+          📊 Estadísticas de Participación
+        </h2>
+        <button type="button" class="btn btn-secondary" onclick="loadStats()" style="margin-bottom:1rem;">
+          📈 Ver Estadísticas
+        </button>
+        <div id="stats-container" style="display:none;">
+          <div id="stats-content"></div>
+        </div>
+      </div>
     </div>
   </main>
 
@@ -197,18 +282,202 @@
         renderAdminMatchesList();
         renderR32Configuration();
 
-        // Populate special settings if already defined
-        const rankingData = await apiFetch('/api/ranking'); // We can fetch config or settings, ranking response contains settings info indirectly, but we can query matches / special state
-        // Let's call endpoint or settings if needed. In server.js we fetch special champion and scorer, let's load it from matches specials.
-        
-        // Actually, we can fetch matches which returns special.champion_team if logged-in. But we want global settings.
-        // We can create a simple request to read settings or fetch from api. In server.js we can fetch it, let's look at setting champions.
-        // Let's get settings values. To fetch special results we can parse from db.json if we return it in ranking or matches, or just fetch ranking.
-        // The ranking response doesn't return the raw settings settings.champion, but we can see who has won. Let's just leave inputs empty or prefill from local storage if available. Better yet: let's query the API matches to see if champion is resolved? No, we can just make it work. Let's retrieve from api ranking which has 'champion' and 'top_scorer'? No, we didn't add settings to API ranking. Let's inspect server.js: app.post('/api/admin/special-results') returns settings: db.settings. We can query it or it just overrides. Let's let admin write it. If we want to prefill, we can write a quick endpoint, but admin can just enter it.
+        // Load current settings
+        loadAdminSettings();
+
       } catch (err) {
         showToast(err.message, true);
       }
     }
+
+    async function loadAdminSettings() {
+      try {
+        const res = await fetch('/api/admin/settings', { headers: { 'Authorization': `Bearer ${sessionStorage.getItem('token')}` } });
+        const data = await res.json();
+        if (data.settings) {
+          document.getElementById('special-locked-check').checked = data.settings.special_locked || false;
+        }
+      } catch (err) {
+        console.error('Error loading settings:', err);
+      }
+    }
+
+    async function loadSpecialVotes() {
+      const container = document.getElementById('special-votes-container');
+      const list = document.getElementById('special-votes-list');
+      container.style.display = 'block';
+      list.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Cargando...</p>';
+
+      try {
+        const data = await apiFetch('/api/admin/special-predictions');
+        
+        if (data.special_predictions.length === 0) {
+          list.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Nadie ha hecho predicciones especiales aún.</p>';
+          return;
+        }
+
+        let html = `<table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border-light);">
+              <th style="text-align:left; padding:0.5rem;">Usuario</th>
+              <th style="text-align:center; padding:0.5rem;">Equipo</th>
+              <th style="text-align:center; padding:0.5rem;">Campeón</th>
+              <th style="text-align:center; padding:0.5rem;">Goleador</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        data.special_predictions.forEach(p => {
+          html += `<tr style="border-bottom:1px solid var(--border-light);">
+            <td style="padding:0.5rem;">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <img src="${p.team_crest}" style="width:20px; height:20px; object-fit:contain;">
+                <span>${p.fullname}</span>
+              </div>
+            </td>
+            <td style="padding:0.5rem; text-align:center;">${p.team_name}</td>
+            <td style="padding:0.5rem; text-align:center; font-weight:600;">${p.champion_team ? getFlag(p.champion_team) + ' ' + p.champion_team : '-'}</td>
+            <td style="padding:0.5rem; text-align:center; font-weight:600;">${p.top_scorer || '-'}</td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        list.innerHTML = html;
+
+      } catch (err) {
+        list.innerHTML = `<p style="color:#ef4444; text-align:center;">Error: ${err.message}</p>`;
+      }
+    }
+
+    async function loadUsersList() {
+      const container = document.getElementById('users-list-container');
+      const list = document.getElementById('users-list');
+      container.style.display = 'block';
+      list.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Cargando...</p>';
+
+      try {
+        const data = await apiFetch('/api/admin/users');
+        
+        if (data.users.length === 0) {
+          list.innerHTML = '<p style="color:var(--text-muted); text-align:center;">No hay usuarios registrados.</p>';
+          return;
+        }
+
+        let html = `<table style="width:100%; font-size:0.85rem; border-collapse:collapse;">
+          <thead>
+            <tr style="border-bottom:1px solid var(--border-light);">
+              <th style="text-align:left; padding:0.5rem;">Usuario</th>
+              <th style="text-align:left; padding:0.5rem;">Equipo</th>
+              <th style="text-align:center; padding:0.5rem;">Código</th>
+              <th style="text-align:center; padding:0.5rem;">Puntos</th>
+            </tr>
+          </thead>
+          <tbody>`;
+
+        data.users.forEach(u => {
+          html += `<tr style="border-bottom:1px solid var(--border-light);">
+            <td style="padding:0.5rem;">
+              <div style="display:flex; align-items:center; gap:0.5rem;">
+                <img src="${u.team_crest}" style="width:20px; height:20px; object-fit:contain;">
+                <span>${u.fullname}</span>
+                ${u.is_admin ? '<span style="background:var(--accent-gold); color:#000; padding:0.1rem 0.4rem; border-radius:3px; font-size:0.7rem; font-weight:700;">ADMIN</span>' : ''}
+              </div>
+            </td>
+            <td style="padding:0.5rem;">${u.team_name}</td>
+            <td style="padding:0.5rem; text-align:center; font-family:monospace; font-weight:600;">${u.access_code}</td>
+            <td style="padding:0.5rem; text-align:center;">${u.score_total || 0}</td>
+          </tr>`;
+        });
+
+        html += '</tbody></table>';
+        list.innerHTML = html;
+
+      } catch (err) {
+        list.innerHTML = `<p style="color:#ef4444; text-align:center;">Error: ${err.message}</p>`;
+      }
+    }
+
+    function exportData() {
+      window.location.href = '/api/admin/export';
+    }
+
+    async function importData(fileInput) {
+      const file = fileInput.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = async (e) => {
+        try {
+          const data = JSON.parse(e.target.result);
+          const result = await apiFetch('/api/admin/import', 'POST', { data });
+          showToast(result.message || 'Datos importados correctamente');
+        } catch (err) {
+          showToast('Error al importar: ' + err.message, true);
+        }
+      };
+      reader.readAsText(file);
+      fileInput.value = '';
+    }
+
+    async function loadStats() {
+      const container = document.getElementById('stats-container');
+      const content = document.getElementById('stats-content');
+      container.style.display = 'block';
+      content.innerHTML = '<p style="color:var(--text-muted); text-align:center;">Cargando...</p>';
+
+      try {
+        const [matchesRes, usersRes] = await Promise.all([
+          apiFetch('/api/matches'),
+          apiFetch('/api/admin/users')
+        ]);
+
+        const matches = matchesRes.matches;
+        const users = usersRes.users;
+        const totalUsers = users.length;
+
+        // Group matches by date (day)
+        const matchesByDay = {};
+        matches.filter(m => m.stage === 'group').forEach(m => {
+          const date = new Date(m.match_date).toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'short' });
+          if (!matchesByDay[date]) matchesByDay[date] = [];
+          matchesByDay[date].push(m);
+        });
+
+        let html = `<div style="margin-bottom:1.5rem;">
+          <h4 style="color:var(--accent-gold); margin-bottom:0.5rem;">Resumen</h4>
+          <p><strong>Total usuarios:</strong> ${totalUsers}</p>
+          <p><strong>Total partidos fase de grupos:</strong> ${matches.filter(m => m.stage === 'group').length}</p>
+          <p><strong>Partidos jugados:</strong> ${matches.filter(m => m.status === 'played' || m.status === 'completed').length}</p>
+        </div>`;
+
+        html += `<h4 style="color:var(--accent-gold); margin-bottom:0.5rem;">Participación por Día</h4>`;
+
+        Object.keys(matchesByDay).forEach(day => {
+          const dayMatches = matchesByDay[day];
+          html += `<div style="margin-bottom:0.75rem; padding:0.5rem; background:rgba(255,255,255,0.05); border-radius:4px;">
+            <strong>${day}</strong> (${dayMatches.length} partidos)
+          </div>`;
+        });
+
+        content.innerHTML = html;
+
+      } catch (err) {
+        content.innerHTML = `<p style="color:#ef4444; text-align:center;">Error: ${err.message}</p>`;
+      }
+    }
+
+    // Settings form handler
+    document.getElementById('settings-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const special_locked = document.getElementById('special-locked-check').checked;
+      
+      try {
+        await apiFetch('/api/admin/settings', 'POST', { special_locked });
+        showToast('Configuración guardada');
+      } catch (err) {
+        showToast('Error: ' + err.message, true);
+      }
+    });
 
     function switchAdminTab(tab) {
       document.querySelectorAll('.tab-btn').forEach((btn, idx) => {

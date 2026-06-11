@@ -170,7 +170,7 @@ function renderHeader() {
       </nav>
       <div style="display: flex; align-items: center; gap: 1rem;">
         <div id="header-clock" class="header-clock" style="font-weight: 600; color: var(--accent-gold); font-size: 0.9rem;"></div>
-        <div class="user-badge">
+        <div class="user-badge" onclick="window.location.href='/profile.html'" style="cursor:pointer;">
           <img src="${session.user.team_crest}" alt="Escudo">
           <div class="team-info">
             <span class="username">${session.user.fullname}</span>

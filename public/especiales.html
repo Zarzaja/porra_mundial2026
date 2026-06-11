@@ -22,6 +22,9 @@
         <p style="color: var(--text-muted); font-size: 0.95rem;">
           Debes guardar tus elecciones antes del partido inaugural del Mundial (11 de Junio de 2026). Una vez comience el torneo, se bloquearán definitivamente y cada acierto sumará <strong>50 puntos adicionales</strong> al final de la competición.
         </p>
+        <p id="existing-warning" style="color: var(--accent-gold); font-weight: 600; margin-top: 0.75rem; display: none;">
+          ⚠️ Ya tienes una selección guardada. ¡Atención: esta elección es irreversible una vez empiece el torneo!
+        </p>
       </div>
 
       <div class="special-grid">
@@ -91,11 +94,17 @@
           document.getElementById('scorer-input').value = data.special.top_scorer;
         }
 
+        // Show warning if user already has a selection
+        if (data.special.has_existing_selection) {
+          document.getElementById('existing-warning').style.display = 'block';
+        }
+
         if (isLocked) {
           select.disabled = true;
           document.getElementById('scorer-input').disabled = true;
           document.getElementById('btn-save-special').style.display = 'none';
           document.getElementById('lock-warning').style.display = 'block';
+          document.getElementById('existing-warning').style.display = 'none';
         }
       } catch (err) {
         showToast(err.message, true);

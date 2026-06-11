@@ -207,7 +207,8 @@ function initializeDatabase() {
     settings: {
       champion: null,
       top_scorer: null,
-      tournament_start_time: "2026-06-11T18:00:00Z" // June 11, 2026 - Opening match: Mexico vs South Africa
+      tournament_start_time: "2026-06-11T18:00:00Z", // June 11, 2026 - Opening match: Mexico vs South Africa
+      special_locked: false
     }
   };
 
@@ -674,6 +675,71 @@ app.post('/api/login', (req, res) => {
   });
 });
 
+// User: Update own profile (team_name, team_crest)
+app.post('/api/profile/update', authUser, (req, res) => {
+  try {
+    const { team_name } = req.body;
+    const db = readDb();
+    const userId = req.user.id;
+    const user = db.users.find(u => u.id === userId);
+    
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    
+    // Update team name if provided
+    if (team_name && team_name.trim()) {
+      user.team_name = team_name.trim();
+    }
+    
+    // Handle crest upload if new file was uploaded
+    if (req.file) {
+      user.team_crest = '/uploads/' + req.file.filename;
+    }
+    
+    writeDb(db).then(() => {
+      res.json({
+        success: true,
+        user: {
+          id: user.id,
+          username: user.username,
+          fullname: user.fullname,
+          team_name: user.team_name,
+          team_crest: user.team_crest,
+          is_admin: user.is_admin
+        }
+      });
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar perfil' });
+  }
+});
+
+// User: Get own profile
+app.get('/api/profile', authUser, (req, res) => {
+  try {
+    const db = readDb();
+    const user = db.users.find(u => u.id === req.user.id);
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+    res.json({
+      user: {
+        id: user.id,
+        username: user.username,
+        fullname: user.fullname,
+        team_name: user.team_name,
+        team_crest: user.team_crest,
+        is_admin: user.is_admin
+      }
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener perfil' });
+  }
+});
+
 // Admin: Edit any user's prediction
 app.post('/api/admin/edit-prediction', authAdmin, async (req, res) => {
   try {
@@ -703,6 +769,13 @@ function isTournamentStarted(db) {
   const now = new Date();
   const start = new Date(db.settings.tournament_start_time || "2026-06-11T18:00:00Z");
   return now >= start;
+}
+
+function isGroupStageFinished(db) {
+  // Check if all group stage matches are completed
+  const groupMatches = db.matches.filter(m => m.stage === 'group');
+  if (groupMatches.length === 0) return false;
+  return groupMatches.every(m => m.status === 'played' || m.status === 'completed');
 }
 
 // Get all matches with current user's predictions
@@ -738,13 +811,15 @@ app.get('/api/matches', authUser, (req, res) => {
 
   // Also fetch special predictions
   const special = db.special_predictions.find(sp => sp.user_id === userId) || { champion_team: null, top_scorer: null };
-  const specialLocked = isTournamentStarted(db);
+  const specialLocked = isGroupStageFinished(db) || db.settings.special_locked;
+  const hasExistingSelection = special.champion_team !== null || special.top_scorer !== null;
 
   res.json({
     matches: matchesWithPred,
     special: {
       ...special,
-      is_locked: specialLocked
+      is_locked: specialLocked,
+      has_existing_selection: hasExistingSelection
     }
   });
 });
@@ -1100,6 +1175,136 @@ app.get('/api/admin/match-predictions/:matchId', authAdmin, (req, res) => {
   }
 });
 
+// Admin: Get all users with their access codes (for password recovery)
+app.get('/api/admin/users', authAdmin, (req, res) => {
+  try {
+    const db = readDb();
+    const users = db.users.map(u => ({
+      id: u.id,
+      username: u.username,
+      fullname: u.fullname,
+      team_name: u.team_name,
+      team_crest: u.team_crest,
+      access_code: u.access_code,
+      is_admin: u.is_admin,
+      score_total: u.score_total,
+      created_at: u.created_at
+    }));
+    res.json({ users });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+});
+
+// Admin: Export all data as JSON file
+app.get('/api/admin/export', authAdmin, (req, res) => {
+  try {
+    const db = readDb();
+    const exportData = {
+      exported_at: new Date().toISOString(),
+      version: '1.0.0',
+      users: db.users,
+      matches: db.matches,
+      predictions: db.predictions,
+      special_predictions: db.special_predictions,
+      settings: db.settings,
+      teams: db.teams
+    };
+    res.setHeader('Content-Disposition', `attachment; filename="mundial_backup_${new Date().toISOString().split('T')[0]}.json"`);
+    res.setHeader('Content-Type', 'application/json');
+    res.json(exportData);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al exportar datos' });
+  }
+});
+
+// Admin: Import data from JSON file
+app.post('/api/admin/import', authAdmin, async (req, res) => {
+  try {
+    const { data } = req.body;
+    
+    if (!data || !data.users || !data.matches) {
+      return res.status(400).json({ error: 'Archivo JSON inválido o incompleto' });
+    }
+
+    const db = readDb();
+    
+    // Merge imported data (don't overwrite existing)
+    // Users: add new ones, skip existing by id
+    const existingUserIds = new Set(db.users.map(u => u.id));
+    const newUsers = data.users.filter(u => !existingUserIds.has(u.id));
+    db.users.push(...newUsers);
+
+    // Matches: update existing, add new
+    data.matches.forEach(m => {
+      const idx = db.matches.findIndex(dm => dm.id === m.id);
+      if (idx >= 0) {
+        db.matches[idx] = m;
+      } else {
+        db.matches.push(m);
+      }
+    });
+
+    // Predictions: add new ones (don't overwrite)
+    const existingPredKeys = new Set(db.predictions.map(p => `${p.user_id}-${p.match_id}`));
+    const newPreds = data.predictions.filter(p => !existingPredKeys.has(`${p.user_id}-${p.match_id}`));
+    db.predictions.push(...newPreds);
+
+    // Special predictions: merge
+    data.special_predictions.forEach(sp => {
+      const idx = db.special_predictions.findIndex(dsp => dsp.user_id === sp.user_id);
+      if (idx >= 0) {
+        db.special_predictions[idx] = sp;
+      } else {
+        db.special_predictions.push(sp);
+      }
+    });
+
+    // Settings
+    if (data.settings) {
+      db.settings = { ...db.settings, ...data.settings };
+    }
+
+    // Teams (don't overwrite)
+    if (data.teams && db.teams.length === 0) {
+      db.teams = data.teams;
+    }
+
+    await writeDb(db);
+    res.json({ success: true, message: `Importados: ${newUsers.length} usuarios, ${data.matches.length} partidos, ${newPreds.length} predicciones` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al importar datos' });
+  }
+});
+
+// Admin: Get special predictions of all users (to award points)
+app.get('/api/admin/special-predictions', authAdmin, (req, res) => {
+  try {
+    const db = readDb();
+    const result = db.special_predictions.map(sp => {
+      const user = db.users.find(u => u.id === sp.user_id);
+      return {
+        user_id: sp.user_id,
+        username: user ? user.username : 'Unknown',
+        fullname: user ? user.fullname : 'Unknown',
+        team_name: user ? user.team_name : 'Unknown',
+        team_crest: user ? user.team_crest : '/uploads/default-crest.png',
+        champion_team: sp.champion_team,
+        top_scorer: sp.top_scorer,
+        points_champion: sp.points_champion,
+        points_top_scorer: sp.points_top_scorer
+      };
+    });
+    res.json({ special_predictions: result });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener predicciones especiales' });
+  }
+});
+
 // Admin: Recalculate all scores (manual refresh)
 app.post('/api/admin/recalculate', authAdmin, async (req, res) => {
   try {
@@ -1180,6 +1385,38 @@ app.post('/api/admin/prediction', authAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al editar la predicción' });
+  }
+});
+
+// Admin: Update settings (including special_locked)
+app.post('/api/admin/settings', authAdmin, async (req, res) => {
+  try {
+    const { special_locked, tournament_start_time } = req.body;
+    const db = readDb();
+    
+    if (special_locked !== undefined) {
+      db.settings.special_locked = special_locked;
+    }
+    if (tournament_start_time !== undefined) {
+      db.settings.tournament_start_time = tournament_start_time;
+    }
+    
+    await writeDb(db);
+    res.json({ success: true, settings: db.settings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar configuración' });
+  }
+});
+
+// Admin: Get settings
+app.get('/api/admin/settings', authAdmin, (req, res) => {
+  try {
+    const db = readDb();
+    res.json({ settings: db.settings });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al obtener configuración' });
   }
 });
 
