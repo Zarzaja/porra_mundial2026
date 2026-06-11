@@ -218,7 +218,8 @@ function initializeDatabase() {
       top_scorer: null,
       tournament_start_time: "2026-06-11T18:00:00Z", // June 11, 2026 - Opening match: Mexico vs South Africa
       special_locked: false
-    }
+    },
+    teams: []
   };
 
     // =====================================================
@@ -1235,11 +1236,14 @@ app.post('/api/admin/import', authAdmin, async (req, res) => {
   try {
     const { data } = req.body;
     
-    if (!data || !data.users || !data.matches) {
+    if (!data || !Array.isArray(data.users) || !Array.isArray(data.matches)) {
       return res.status(400).json({ error: 'Archivo JSON inválido o incompleto' });
     }
 
     const db = readDb();
+    const importedPredictions = Array.isArray(data.predictions) ? data.predictions : [];
+    const importedSpecialPredictions = Array.isArray(data.special_predictions) ? data.special_predictions : [];
+    const importedTeams = Array.isArray(data.teams) ? data.teams : [];
     
     // Merge imported data (don't overwrite existing)
     // Users: add new ones, skip existing by id
@@ -1259,11 +1263,11 @@ app.post('/api/admin/import', authAdmin, async (req, res) => {
 
     // Predictions: add new ones (don't overwrite)
     const existingPredKeys = new Set(db.predictions.map(p => `${p.user_id}-${p.match_id}`));
-    const newPreds = data.predictions.filter(p => !existingPredKeys.has(`${p.user_id}-${p.match_id}`));
+    const newPreds = importedPredictions.filter(p => !existingPredKeys.has(`${p.user_id}-${p.match_id}`));
     db.predictions.push(...newPreds);
 
     // Special predictions: merge
-    data.special_predictions.forEach(sp => {
+    importedSpecialPredictions.forEach(sp => {
       const idx = db.special_predictions.findIndex(dsp => dsp.user_id === sp.user_id);
       if (idx >= 0) {
         db.special_predictions[idx] = sp;
@@ -1278,8 +1282,8 @@ app.post('/api/admin/import', authAdmin, async (req, res) => {
     }
 
     // Teams (don't overwrite)
-    if (data.teams && db.teams.length === 0) {
-      db.teams = data.teams;
+    if (importedTeams.length > 0 && db.teams.length === 0) {
+      db.teams = importedTeams;
     }
 
     await writeDb(db);
