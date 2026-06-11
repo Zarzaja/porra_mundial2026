@@ -5,8 +5,18 @@ const fs = require('fs');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
-const DB_PATH = path.join(__dirname, 'db.json');
-const UPLOADS_DIR = path.join(__dirname, 'public', 'uploads');
+const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID || process.env.RENDER_EXTERNAL_HOSTNAME);
+const DB_SEED_PATH = path.join(__dirname, 'db.json');
+const DB_PATH = process.env.DB_PATH || (IS_RENDER ? path.join('/tmp', 'db.json') : DB_SEED_PATH);
+const UPLOADS_DIR = process.env.UPLOADS_DIR || (IS_RENDER ? path.join('/tmp', 'uploads') : path.join(__dirname, 'public', 'uploads'));
+
+function ensureRuntimeDb() {
+  if (DB_PATH === DB_SEED_PATH) return;
+  if (fs.existsSync(DB_PATH)) return;
+  if (!fs.existsSync(DB_SEED_PATH)) return;
+  fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
+  fs.copyFileSync(DB_SEED_PATH, DB_PATH);
+}
 
 // Create upload directory if it doesn't exist
 if (!fs.existsSync(UPLOADS_DIR)) {
@@ -17,6 +27,7 @@ if (!fs.existsSync(UPLOADS_DIR)) {
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static(path.join(__dirname, 'public')));
+app.use('/uploads', express.static(UPLOADS_DIR));
 
 // Configure Multer for team crest uploads
 const storage = multer.diskStorage({
@@ -37,6 +48,7 @@ const upload = multer({
 // JSON Database helper with sequential queue to prevent corruption
 let dbQueue = Promise.resolve();
 function readDb() {
+  ensureRuntimeDb();
   if (!fs.existsSync(DB_PATH)) {
     return null;
   }
@@ -195,6 +207,7 @@ const GROUPS_DATA = {
 
 // Seeding function
 function initializeDatabase() {
+  ensureRuntimeDb();
   if (fs.existsSync(DB_PATH)) {
     // Check if the database has the initial structure, if so just return
     try {
