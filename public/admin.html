@@ -493,6 +493,9 @@
       document.getElementById('admin-special-view').style.display = tab === 'special' ? 'block' : 'none';
     }
 
+    // Open special tab by default
+    switchAdminTab('special');
+
     function renderAdminMatchesList() {
       const container = document.getElementById('admin-match-list');
       container.innerHTML = '';
