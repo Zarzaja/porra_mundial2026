@@ -1264,9 +1264,28 @@
       "points_top_scorer": 0
     }
   ],
+  "predictions": [],
+  "special_predictions": [
+    {
+      "user_id": 1,
+      "champion_team": null,
+      "top_scorer": null,
+      "points_champion": 0,
+      "points_top_scorer": 0
+    },
+    {
+      "user_id": 2,
+      "champion_team": null,
+      "top_scorer": null,
+      "points_champion": 0,
+      "points_top_scorer": 0
+    }
+  ],
   "settings": {
     "champion": null,
     "top_scorer": null,
-    "tournament_start_time": "2026-06-11T18:00:00Z"
-  }
+    "tournament_start_time": "2026-06-11T18:00:00Z",
+    "special_locked": false
+  },
+  "teams": []
 }

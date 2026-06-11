@@ -41,7 +41,16 @@ function readDb() {
     return null;
   }
   const data = fs.readFileSync(DB_PATH, 'utf8');
-  return JSON.parse(data);
+  const db = JSON.parse(data);
+  
+  // Initialize missing sections
+  if (!db.predictions) db.predictions = [];
+  if (!db.special_predictions) db.special_predictions = [];
+  if (!db.settings) db.settings = {};
+  if (db.settings.special_locked === undefined) db.settings.special_locked = false;
+  if (!db.teams) db.teams = [];
+  
+  return db;
 }
 
 function writeDb(data) {
@@ -889,8 +898,9 @@ app.post('/api/predict/special', authUser, async (req, res) => {
     const userId = req.user.id;
 
     const db = readDb();
-    if (isTournamentStarted(db)) {
-      return res.status(400).json({ error: 'El torneo ya ha comenzado. Las predicciones especiales están bloqueadas.' });
+    const specialLocked = isGroupStageFinished(db) || db.settings.special_locked;
+    if (specialLocked) {
+      return res.status(400).json({ error: 'Las predicciones especiales están bloqueadas (ha terminado la fase de grupos o el administrador lo ha bloqueado).' });
     }
 
     let spec = db.special_predictions.find(sp => sp.user_id === userId);
