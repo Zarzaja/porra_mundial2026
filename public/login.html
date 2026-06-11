@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login - Quiniela Mundial 2026</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/app.js"></script>
+</head>
+<body>
+  
+  <div class="auth-container">
+    <div class="glass-card">
+      <div class="auth-title">
+        <h1>🏆 Mundial 2026</h1>
+        <p>Entra para ver tus predicciones y puntuaciones</p>
+      </div>
+      
+      <form id="login-form">
+        <div class="form-group">
+          <label for="username">Nombre de Usuario</label>
+          <input type="text" id="username" class="form-input" placeholder="ej: juan_perez" required autocomplete="username">
+        </div>
+        
+        <div class="form-group">
+          <label for="access-code">Código de Acceso</label>
+          <input type="password" id="access-code" class="form-input" placeholder="Ingresa tu clave" required autocomplete="current-password">
+        </div>
+        
+        <button type="submit" class="btn btn-block">
+          ⚡ Entrar a la Porra
+        </button>
+      </form>
+      
+      <div class="auth-footer">
+        ¿No estás registrado? <a href="/register.html">Crea tu equipo aquí</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // Double check session
+    if (localStorage.getItem('user')) {
+      window.location.href = '/index.html';
+    }
+
+    document.getElementById('login-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const username = document.getElementById('username').value.trim();
+      const access_code = document.getElementById('access-code').value.trim();
+
+      try {
+        const response = await fetch('/api/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, access_code })
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al iniciar sesión');
+        }
+
+        // Save session
+        setSession(data.user, access_code);
+        showToast('¡Sesión iniciada con éxito!');
+        
+        setTimeout(() => {
+          window.location.href = '/index.html';
+        }, 1000);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+  </script>
+</body>
+</html>

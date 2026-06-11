@@ -1,0 +1,238 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tabla de Posiciones - Porra Mundial 2026</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/app.js"></script>
+</head>
+<body>
+  
+  <header>
+    <!-- Rendered dynamically by app.js -->
+  </header>
+
+  <main>
+    <div class="glass-card">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem; flex-wrap:wrap; gap: 1rem;">
+        <div>
+          <h1 style="font-size: 1.8rem; font-weight: 800; background: linear-gradient(135deg, #fff 30%, var(--accent-gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent;">
+            📊 Tabla de Clasificación
+          </h1>
+          <p style="color:var(--text-muted); font-size:0.9rem;">
+            Haz clic en cualquiera de tus amigos para ver qué pronosticó en los partidos ya jugados o bloqueados.
+          </p>
+        </div>
+        <button class="btn btn-secondary" onclick="loadRanking()">🔄 Actualizar Tabla</button>
+      </div>
+
+      <div class="leaderboard-table-wrapper">
+        <table class="leaderboard-table">
+          <thead>
+            <tr>
+              <th class="rank-cell">Pos</th>
+              <th>Participante</th>
+              <th style="text-align: center;" class="score-breakdown-cell">⭐ 25</th>
+              <th style="text-align: center;" class="score-breakdown-cell">🔥 6</th>
+              <th style="text-align: center;" class="score-breakdown-cell">✔️ 5</th>
+              <th style="text-align: center;" class="score-breakdown-cell">⚽ 1</th>
+              <th style="text-align: center;" class="score-breakdown-cell">🏆 Espec.</th>
+              <th style="text-align: right;">Puntos Totales</th>
+            </tr>
+          </thead>
+          <tbody id="ranking-body">
+            <!-- Rendered dynamically -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <!-- User Details Predictions Modal -->
+  <div class="modal-overlay" id="user-details-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-user-profile">
+          <img id="modal-user-crest" class="modal-crest" src="/uploads/default-crest.png" alt="Escudo">
+          <div class="modal-title-text">
+            <h3 id="modal-user-name">Nombre del Participante</h3>
+            <p id="modal-user-team">Equipo</p>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closeDetailsModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <div id="modal-special-preds" class="glass-card" style="margin-bottom:1rem; padding:1rem; display:none; background:rgba(99,102,241,0.05); border-color:rgba(99,102,241,0.15)">
+          <h4 style="font-size:0.9rem; color:var(--accent-gold); text-transform:uppercase; margin-bottom:0.5rem;">⭐ Predicciones Especiales</h4>
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:1rem; font-size:0.9rem;">
+            <div>🏆 <strong>Campeón:</strong> <span id="modal-spec-champion">-</span> <span id="modal-spec-champion-pts" class="points-pill" style="font-size:0.65rem; padding:0.1rem 0.3rem; display:none;"></span></div>
+            <div>👟 <strong>Goleador:</strong> <span id="modal-spec-scorer">-</span> <span id="modal-spec-scorer-pts" class="points-pill" style="font-size:0.65rem; padding:0.1rem 0.3rem; display:none;"></span></div>
+          </div>
+        </div>
+
+        <h4 style="font-size:0.95rem; color:var(--text-muted); border-bottom:1px solid var(--border-light); padding-bottom:0.4rem; margin-bottom:0.5rem;">📋 Predicciones Realizadas</h4>
+        <div id="modal-predictions-container" style="display:flex; flex-direction:column; gap:0.75rem;">
+          <!-- Loaded dynamically -->
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    let currentUserId = null;
+    const session = getSession();
+    if (session) {
+      currentUserId = session.user.id;
+    }
+
+    async function loadRanking() {
+      const tbody = document.getElementById('ranking-body');
+      tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted)">Cargando tabla de posiciones...</td></tr>';
+
+      try {
+        const data = await apiFetch('/api/ranking');
+        tbody.innerHTML = '';
+
+        if (data.ranking.length === 0) {
+          tbody.innerHTML = '<tr><td colspan="8" style="text-align:center; color:var(--text-muted)">No hay participantes registrados.</td></tr>';
+          return;
+        }
+
+        data.ranking.forEach((user, idx) => {
+          const tr = document.createElement('tr');
+          
+          // Check if it's the logged-in user
+          const isMe = currentUserId === user.id;
+          if (isMe) {
+            tr.className = 'is-me';
+          }
+
+          // Format rank colors
+          let rankClass = '';
+          if (idx === 0) rankClass = 'rank-1';
+          else if (idx === 1) rankClass = 'rank-2';
+          else if (idx === 2) rankClass = 'rank-3';
+
+          // Specials points notation
+          const specialPts = user.score_specials > 0 ? `+${user.score_specials}` : '';
+
+          tr.onclick = () => openUserDetailsModal(user.id);
+
+          tr.innerHTML = `
+            <td class="rank-cell ${rankClass}">#${idx + 1}</td>
+            <td>
+              <div class="participant-cell">
+                <img class="participant-crest" src="${user.team_crest}" alt="Escudo">
+                <div class="participant-info">
+                  <span class="participant-team">${user.team_name}</span>
+                  <span class="participant-user">${user.fullname} (${user.username})</span>
+                </div>
+              </div>
+            </td>
+            <td style="text-align: center;" class="score-breakdown-cell">${user.score_exact}</td>
+            <td style="text-align: center;" class="score-breakdown-cell">${user.score_outcome_plus}</td>
+            <td style="text-align: center;" class="score-breakdown-cell">${user.score_outcome_only}</td>
+            <td style="text-align: center;" class="score-breakdown-cell">${user.score_goals_only}</td>
+            <td style="text-align: center; font-weight:700; color:var(--accent-gold);" class="score-breakdown-cell">${user.score_specials > 0 ? user.score_specials : '-'}</td>
+            <td style="text-align: right;" class="total-score-cell">${user.score_total} pts</td>
+          `;
+
+          tbody.appendChild(tr);
+        });
+
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#ef4444">${err.message}</td></tr>`;
+      }
+    }
+
+    // Modal view for individual user details
+    async function openUserDetailsModal(userId) {
+      const modal = document.getElementById('user-details-modal');
+      const container = document.getElementById('modal-predictions-container');
+      const specialBox = document.getElementById('modal-special-preds');
+
+      container.innerHTML = '<p style="text-align:center; color:var(--text-muted)">Cargando detalles...</p>';
+      specialBox.style.display = 'none';
+      modal.classList.add('active');
+
+      try {
+        const data = await apiFetch(`/api/user-predictions/${userId}`);
+        
+        document.getElementById('modal-user-crest').src = data.user.team_crest;
+        document.getElementById('modal-user-name').textContent = data.user.fullname;
+        document.getElementById('modal-user-team').textContent = `${data.user.team_name} | Total: ${data.user.score_total} pts`;
+
+        // Load special predictions if available
+        if (data.special) {
+          specialBox.style.display = 'block';
+          
+          const champSpan = document.getElementById('modal-spec-champion');
+          const champPts = document.getElementById('modal-spec-champion-pts');
+          champSpan.textContent = data.special.champion_team ? `${getFlag(data.special.champion_team)} ${data.special.champion_team}` : 'No elegido';
+          if (data.special.points_champion > 0) {
+            champPts.textContent = `+${data.special.points_champion} pts`;
+            champPts.className = 'points-pill pts-25';
+            champPts.style.display = 'inline-block';
+          } else {
+            champPts.style.display = 'none';
+          }
+
+          const scorerSpan = document.getElementById('modal-spec-scorer');
+          const scorerPts = document.getElementById('modal-spec-scorer-pts');
+          scorerSpan.textContent = data.special.top_scorer || 'No elegido';
+          if (data.special.points_top_scorer > 0) {
+            scorerPts.textContent = `+${data.special.points_top_scorer} pts`;
+            scorerPts.className = 'points-pill pts-25';
+            scorerPts.style.display = 'inline-block';
+          } else {
+            scorerPts.style.display = 'none';
+          }
+        }
+
+        container.innerHTML = '';
+        if (data.predictions.length === 0) {
+          container.innerHTML = '<p style="text-align:center; color:var(--text-muted); padding: 1rem;">No hay predicciones visibles (solo se revelan los partidos ya iniciados o jugados).</p>';
+          return;
+        }
+
+        data.predictions.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'details-prediction-card';
+
+          const pts = p.points;
+          let pointsHtml = `<span class="points-pill pts-${pts}">${pts} pts</span>`;
+
+          card.innerHTML = `
+            <div style="display:flex; flex-direction:column;">
+              <span class="details-teams">${getFlag(p.team1)} ${p.team1} vs ${getFlag(p.team2)} ${p.team2}</span>
+              <span style="font-size:0.75rem; color:var(--text-dark)">Partido ID: ${p.match_id}</span>
+            </div>
+            <div style="display:flex; align-items:center; gap:0.75rem;">
+              <span class="details-pred-score" title="Predicción">${p.goals1} - ${p.goals2}</span>
+              ${pointsHtml}
+            </div>
+          `;
+          container.appendChild(card);
+        });
+
+      } catch (err) {
+        container.innerHTML = `<p style="text-align:center; color:#ef4444">${err.message}</p>`;
+      }
+    }
+
+    function closeDetailsModal() {
+      document.getElementById('user-details-modal').classList.remove('active');
+    }
+
+    document.getElementById('user-details-modal').addEventListener('click', (e) => {
+      if (e.target.id === 'user-details-modal') {
+        closeDetailsModal();
+      }
+    });
+
+    // Load on startup
+    loadRanking();
+  </script>
+</body>
+</html>

@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Registro - Quiniela Mundial 2026</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/app.js"></script>
+</head>
+<body>
+  
+  <div class="auth-container">
+    <div class="glass-card">
+      <div class="auth-title">
+        <h1>🛡️ Crea tu Equipo</h1>
+        <p>Regístrate y sube tu escudo para jugar con amigos</p>
+      </div>
+
+      <!-- Guide Section -->
+      <details class="guide-details">
+        <summary class="guide-summary">📖 ¿Cómo funciona la Porra?</summary>
+        <div class="guide-content">
+          <h3>🏆 Finalidad del Juego</h3>
+          <p>Participa en la quiniela del Mundial 2026 pronósticando los resultados de todos los partidos. Cada acierto te da puntos y compites con tus amigos por la máxima puntuación.</p>
+
+          <h3>📊 Sistema de Puntuación</h3>
+          <div class="score-guide">
+            <div class="score-item">
+              <span class="score-badge score-25">25 pts</span>
+              <span><strong>Marcador exacto</strong> - Acertaste los goles de ambos equipos (ej: pronosticaste 2-1 y fue 2-1)</span>
+            </div>
+            <div class="score-item">
+              <span class="score-badge score-5">5 pts</span>
+              <span><strong>Ganador correcto</strong> - Acertaste quién gana, pero no los goles de ningún equipo (ej: pronosticaste 2-1, fue 3-0)</span>
+            </div>
+            <div class="score-item">
+              <span class="score-badge score-6">+1 pt</span>
+              <span><strong>Bonus por equipo</strong> - Sumas 1 punto por cada equipo cuyos goles acertaste (ej: pronosticaste 4-1 y fue 3-1 → 5 pts winner + 1 pt bonus = 6 pts)</span>
+            </div>
+            <div class="score-item">
+              <span class="score-badge score-1">1 pt</span>
+              <span><strong>Un gol</strong> - No acertaste el ganador, pero sí los goles de un equipo (ej: pronosticaste 3-1 y fue 0-1 → acertaste que el equipo visitante marcó 1 gol)</span>
+            </div>
+          </div>
+
+          <h3>⭐ Predicciones Especiales</h3>
+          <p>Antes del torneo puedes elegir <strong>Campeón del Mundo</strong> y <strong>Máximo Goleador</strong>. Cada acierto suma <strong>50 puntos extra</strong>. Solo se pueden cambiar hasta 5 minutos antes del partido inaugural.</p>
+
+          <h3>🔒 Bloqueo de Pronósticos</h3>
+          <p>Los partidos se bloquean <strong>5 minutos antes</strong> de que empiecen. Una vez bloqueados, no se pueden modificar.</p>
+        </div>
+      </details>
+
+      <form id="register-form" enctype="multipart/form-data">
+        <div class="form-group">
+          <label for="username">Nombre de Usuario</label>
+          <input type="text" id="username" name="username" class="form-input" placeholder="ej: luis_10" required pattern="^[a-zA-Z0-9_]{3,15}$" title="Solo letras, números y guión bajo (3 a 15 caracteres)">
+        </div>
+        
+        <div class="form-group">
+          <label for="fullname">Nombre Completo</label>
+          <input type="text" id="fullname" name="fullname" class="form-input" placeholder="ej: Luis Rodríguez" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="team_name">Nombre de tu Equipo</label>
+          <input type="text" id="team_name" name="team_name" class="form-input" placeholder="ej: Dep. Los Troncos" required>
+        </div>
+
+        <div class="form-group">
+          <label for="crest">Escudo del Equipo</label>
+          <div class="file-upload-wrapper">
+            <img id="preview-img" class="crest-preview" src="/uploads/default-crest.png" alt="Previsualización Escudo">
+            <div class="upload-instructions">
+              <span>Selecciona una imagen</span>
+              <small>Formatos PNG, JPG (Máx. 2MB)</small>
+            </div>
+            <input type="file" id="crest" name="crest" accept="image/*">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="access_code">Código de Acceso</label>
+          <input type="password" id="access_code" name="access_code" class="form-input" placeholder="Crea tu clave secreta de acceso" required>
+        </div>
+        
+        <button type="submit" class="btn btn-block">
+          🚀 Registrarse y Jugar
+        </button>
+      </form>
+      
+      <div class="auth-footer">
+        ¿Ya tienes cuenta? <a href="/login.html">Inicia sesión aquí</a>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    if (localStorage.getItem('user')) {
+      window.location.href = '/index.html';
+    }
+
+    // Image preview logic
+    const fileInput = document.getElementById('crest');
+    const previewImg = document.getElementById('preview-img');
+
+    fileInput.addEventListener('change', () => {
+      const file = fileInput.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          previewImg.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+      } else {
+        previewImg.src = '/uploads/default-crest.png';
+      }
+    });
+
+    // Form submit logic
+    document.getElementById('register-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+
+      const formData = new FormData(e.target);
+
+      try {
+        const response = await fetch('/api/register', {
+          method: 'POST',
+          body: formData
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+          throw new Error(data.error || 'Error al registrarse');
+        }
+
+        showToast('¡Registro completado! Iniciando sesión...');
+        
+        // Log them in immediately
+        const accessCode = document.getElementById('access_code').value.trim();
+        setSession(data.user, accessCode);
+        
+        setTimeout(() => {
+          window.location.href = '/index.html';
+        }, 1200);
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    });
+  </script>
+</body>
+</html>

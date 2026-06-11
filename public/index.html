@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Porra Mundial 2026 - Predicciones</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/app.js"></script>
+  <style>
+    .group-view-toggle {
+      display: flex;
+      gap: 0.4rem;
+      background: rgba(255,255,255,0.04);
+      border: 1px solid var(--border-light);
+      border-radius: 50px;
+      padding: 0.25rem;
+    }
+    .view-toggle-btn {
+      background: none;
+      border: none;
+      color: var(--text-muted);
+      padding: 0.35rem 0.9rem;
+      font-family: inherit;
+      font-size: 0.85rem;
+      font-weight: 600;
+      cursor: pointer;
+      border-radius: 50px;
+      transition: all 0.2s;
+      white-space: nowrap;
+    }
+    .view-toggle-btn.active {
+      background: var(--accent-indigo);
+      color: white;
+    }
+    .day-header {
+      grid-column: 1 / -1;
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      padding: 0.6rem 1rem;
+      background: linear-gradient(90deg, rgba(99,102,241,0.12) 0%, transparent 100%);
+      border-left: 3px solid var(--accent-indigo);
+      border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+      margin-top: 0.5rem;
+    }
+    .day-header h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text-main);
+      text-transform: capitalize;
+    }
+    .day-header span {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+    }
+    .day-match-count {
+      margin-left: auto;
+      font-size: 0.75rem;
+      background: rgba(99,102,241,0.2);
+      color: var(--accent-indigo);
+      padding: 0.15rem 0.5rem;
+      border-radius: 50px;
+      font-weight: 700;
+    }
+    .group-filter-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.75rem;
+    }
+  </style>
+</head>
+<body>
+
+  <header></header>
+
+  <main>
+    <div class="tabs-container">
+      <button class="tab-btn active" id="tab-group" onclick="switchMainTab('group')">📅 Fase de Grupos</button>
+      <button class="tab-btn" id="tab-knockout" onclick="switchMainTab('knockout')">🏆 Eliminatorias</button>
+    </div>
+
+    <!-- Group Stage Section -->
+    <div id="group-section">
+      <div class="group-filter-row">
+        <!-- Group sub-tabs -->
+        <div class="subtabs-container" id="group-subtabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;"></div>
+        <!-- View toggle -->
+        <div class="group-view-toggle">
+          <button class="view-toggle-btn active" id="btn-view-groups" onclick="setGroupView('groups')">🗂️ Por Grupos</button>
+          <button class="view-toggle-btn" id="btn-view-days" onclick="setGroupView('days')">📆 Por Días</button>
+        </div>
+      </div>
+
+      <div id="matches-list" class="matches-grid"></div>
+    </div>
+
+    <!-- Knockout Bracket -->
+    <div id="knockout-section" style="display:none;">
+      <div class="glass-card" style="padding:1rem;">
+        <p style="font-size:0.9rem;color:var(--text-muted);margin-bottom:1rem;text-align:center;">
+          💡 Desliza para ver el cuadro completo. Las predicciones se abren cuando el admin define los equipos reales.
+        </p>
+        <div class="bracket-wrapper">
+          <div class="bracket-container" id="bracket-container"></div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Friends Predictions Modal -->
+  <div class="modal-overlay" id="predictions-modal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <div class="modal-user-profile">
+          <span style="font-size:1.5rem;">⚽</span>
+          <div class="modal-title-text">
+            <h3 id="modal-match-title">Predicciones</h3>
+            <p id="modal-match-details"></p>
+          </div>
+        </div>
+        <button class="btn-close-modal" onclick="closePredictionsModal()">&times;</button>
+      </div>
+      <div class="modal-body" id="modal-predictions-list"></div>
+    </div>
+  </div>
+
+  <script>
+    let allMatches = [];
+    let currentMainTab = 'group';
+    let currentGroup = 'A';
+    let currentGroupView = 'groups'; // 'groups' or 'days'
+
+    // ── Load ─────────────────────────────────────────────────────────────────
+    async function loadDashboard() {
+      try {
+        const data = await apiFetch('/api/matches');
+        allMatches = data.matches;
+        buildGroupSubtabs();
+        renderGroupSection();
+        renderBracket();
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    // ── Main tab switch ───────────────────────────────────────────────────────
+    function switchMainTab(tab) {
+      currentMainTab = tab;
+      document.getElementById('tab-group').classList.toggle('active', tab === 'group');
+      document.getElementById('tab-knockout').classList.toggle('active', tab === 'knockout');
+      document.getElementById('group-section').style.display    = tab === 'group'    ? 'block' : 'none';
+      document.getElementById('knockout-section').style.display = tab === 'knockout' ? 'block' : 'none';
+    }
+
+    // ── Group sub-tabs (A-L) ─────────────────────────────────────────────────
+    function buildGroupSubtabs() {
+      const container = document.getElementById('group-subtabs');
+      if (container.children.length > 0) return;
+      ['A','B','C','D','E','F','G','H','I','J','K','L'].forEach(g => {
+        const btn = document.createElement('button');
+        btn.className = `subtab-btn ${g === currentGroup ? 'active' : ''}`;
+        btn.textContent = g;
+        btn.id = `subtab-${g}`;
+        btn.onclick = () => {
+          document.querySelectorAll('.subtab-btn').forEach(b => b.classList.remove('active'));
+          btn.classList.add('active');
+          currentGroup = g;
+          if (currentGroupView === 'groups') renderByGroup();
+        };
+        container.appendChild(btn);
+      });
+    }
+
+    // ── View toggle ───────────────────────────────────────────────────────────
+    function setGroupView(view) {
+      currentGroupView = view;
+      document.getElementById('btn-view-groups').classList.toggle('active', view === 'groups');
+      document.getElementById('btn-view-days').classList.toggle('active', view === 'days');
+
+      // Hide/show group subtabs
+      const subtabs = document.getElementById('group-subtabs');
+      subtabs.style.visibility = view === 'groups' ? 'visible' : 'hidden';
+
+      renderGroupSection();
+    }
+
+    function renderGroupSection() {
+      if (currentGroupView === 'groups') renderByGroup();
+      else renderByDay();
+    }
+
+    // ── By Group ──────────────────────────────────────────────────────────────
+    function renderByGroup() {
+      const container = document.getElementById('matches-list');
+      container.innerHTML = '';
+      const matches = allMatches.filter(m => m.stage === 'group' && m.group_name === currentGroup);
+      if (!matches.length) {
+        container.innerHTML = '<p style="grid-column:1/-1;text-align:center;color:var(--text-muted)">No hay partidos para este grupo.</p>';
+        return;
+      }
+      matches.forEach(m => container.appendChild(buildMatchCard(m)));
+    }
+
+    // ── By Day ────────────────────────────────────────────────────────────────
+    function renderByDay() {
+      const container = document.getElementById('matches-list');
+      container.innerHTML = '';
+
+      const groupMatches = allMatches.filter(m => m.stage === 'group');
+      groupMatches.sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
+
+      // Group by calendar day (in local time)
+      const byDay = {};
+      groupMatches.forEach(m => {
+        const day = new Date(m.match_date).toLocaleDateString('es-ES', { weekday:'long', day:'numeric', month:'long' });
+        if (!byDay[day]) byDay[day] = [];
+        byDay[day].push(m);
+      });
+
+      Object.entries(byDay).forEach(([day, matches]) => {
+        // Day header spanning all columns
+        const header = document.createElement('div');
+        header.className = 'day-header';
+        header.innerHTML = `
+          <h3>${day}</h3>
+          <span class="day-match-count">${matches.length} partido${matches.length > 1 ? 's' : ''}</span>
+        `;
+        container.appendChild(header);
+        matches.forEach(m => container.appendChild(buildMatchCard(m)));
+      });
+    }
+
+    // ── Match Card Builder ────────────────────────────────────────────────────
+    function buildMatchCard(m) {
+      const card = document.createElement('div');
+      const isPlayed = m.status === 'played';
+      const isLocked = m.is_locked;
+      const pred = m.prediction;
+
+      card.className = `match-card ${isPlayed ? 'played' : ''} ${isLocked && !isPlayed ? 'locked' : ''}`;
+
+      let pointsPillHtml = '';
+      if (isPlayed && pred) {
+        const pts = pred.points;
+        const labels = { 25: '⭐ Exacto (25)', 6: '🔥 Winner + 1 equipo (6)', 5: '✔️ Winner (5)', 1: '⚽ 1 equipo (1)' };
+        const label = labels[pts] ?? '❌ 0 pts';
+        pointsPillHtml = `<span class="points-pill pts-${pts}" style="cursor:pointer" onclick="openPredictionsModal('${m.id}')" title="Ver predicciones de amigos">${label}</span>`;
+      } else if (isLocked) {
+        pointsPillHtml = `<span class="points-pill pts-0" style="cursor:pointer;background:rgba(99,102,241,.15);color:var(--accent-indigo);border-color:var(--accent-indigo)" onclick="openPredictionsModal('${m.id}')">👁️ Ver predicciones</span>`;
+      }
+
+      // Group badge only shown in day view
+      const groupBadge = currentGroupView === 'days'
+        ? `<span style="font-size:0.7rem;background:var(--accent-gold-glow);color:var(--accent-gold);padding:0.1rem 0.4rem;border-radius:50px;font-weight:700">Grupo ${m.group_name}</span>`
+        : '';
+
+      card.innerHTML = `
+        <div class="match-header">
+          <div style="display:flex;align-items:center;gap:0.5rem;">
+            <span class="match-date-badge">📅 ${formatMatchDate(m.match_date)}</span>
+            ${groupBadge}
+          </div>
+          <span class="match-status-badge ${isPlayed ? 'status-played' : 'status-scheduled'}">
+            ${isPlayed ? 'Finalizado' : (isLocked ? '🔒 Bloqueado' : '✏️ Abierto')}
+          </span>
+        </div>
+        <div class="match-teams-container">
+          <div class="team-row">
+            <div class="team-name-wrapper">
+              <span class="team-flag">${getFlag(m.team1)}</span>
+              <span class="team-name">${m.team1}</span>
+            </div>
+            ${isPlayed ? `<span class="actual-score">${m.goals1}</span>` : ''}
+          </div>
+          <div class="team-row">
+            <div class="team-name-wrapper">
+              <span class="team-flag">${getFlag(m.team2)}</span>
+              <span class="team-name">${m.team2}</span>
+            </div>
+            ${isPlayed ? `<span class="actual-score">${m.goals2}</span>` : ''}
+          </div>
+        </div>
+        <div class="match-prediction-section">
+          <div class="prediction-inputs">
+            <span class="pred-title">Mi pronóstico:</span>
+            <input type="number" min="0" class="pred-input" id="pred-${m.id}-1"
+              value="${pred != null ? pred.goals1 : ''}" ${isLocked ? 'disabled' : ''} placeholder="-">
+            <span class="pred-vs">-</span>
+            <input type="number" min="0" class="pred-input" id="pred-${m.id}-2"
+              value="${pred != null ? pred.goals2 : ''}" ${isLocked ? 'disabled' : ''} placeholder="-">
+          </div>
+          <div>
+            ${isLocked
+              ? pointsPillHtml
+              : `<button class="btn btn-secondary btn-save-pred" onclick="savePrediction('${m.id}')">💾 Guardar</button>`}
+          </div>
+        </div>
+      `;
+      return card;
+    }
+
+    // ── Save Prediction ───────────────────────────────────────────────────────
+    async function savePrediction(matchId) {
+      const g1Val = document.getElementById(`pred-${matchId}-1`).value;
+      const g2Val = document.getElementById(`pred-${matchId}-2`).value;
+      if (g1Val === '' || g2Val === '') { showToast('Ingresa los goles de ambos equipos', true); return; }
+      try {
+        await apiFetch('/api/predict', 'POST', { match_id: matchId, goals1: g1Val, goals2: g2Val });
+        showToast('✅ Predicción guardada');
+        const idx = allMatches.findIndex(m => m.id === matchId);
+        if (idx !== -1) allMatches[idx].prediction = { goals1: +g1Val, goals2: +g2Val, points: 0 };
+      } catch (err) { showToast(err.message, true); }
+    }
+
+    // ── Bracket ───────────────────────────────────────────────────────────────
+    function renderBracket() {
+      const container = document.getElementById('bracket-container');
+      container.innerHTML = '';
+      const rounds = [
+        { name: 'Dieciseisavos', stage: 'R32' },
+        { name: 'Octavos', stage: 'R16' },
+        { name: 'Cuartos', stage: 'QF' },
+        { name: 'Semifinales', stage: 'SF' },
+        { name: 'Finales', stage: 'FINALS' }
+      ];
+
+      rounds.forEach(r => {
+        const col = document.createElement('div');
+        col.className = 'bracket-round';
+        const title = document.createElement('div');
+        title.className = 'bracket-round-title';
+        title.textContent = r.name;
+        col.appendChild(title);
+
+        let rMatches = r.stage === 'FINALS'
+          ? allMatches.filter(m => m.stage === 'FINAL' || m.stage === '3RD').sort((a,b) => b.stage.localeCompare(a.stage))
+          : allMatches.filter(m => m.stage === r.stage).sort((a,b) => {
+              const na = parseInt(a.id.split('-').pop()), nb = parseInt(b.id.split('-').pop());
+              return na - nb;
+            });
+
+        rMatches.forEach(m => {
+          const box = document.createElement('div');
+          box.className = 'bracket-match';
+          const isPlayed = m.status === 'played';
+          const isLocked = m.is_locked;
+          const pred = m.prediction;
+          const isPlaceholder = ['Grupo','Ganador','Perdedor'].some(w => m.team1.includes(w) || m.team2.includes(w));
+
+          let t1cls = '', t2cls = '';
+          if (isPlayed) {
+            if (m.goals1 > m.goals2 || (m.goals1 === m.goals2 && m.penalty1 > m.penalty2)) t1cls = 'winner';
+            else if (m.goals2 > m.goals1 || (m.goals1 === m.goals2 && m.penalty2 > m.penalty1)) t2cls = 'winner';
+          }
+          let s1 = isPlayed ? m.goals1 : '', s2 = isPlayed ? m.goals2 : '';
+          if (isPlayed && m.goals1 === m.goals2 && m.penalty1 != null) { s1 += ` (${m.penalty1})`; s2 += ` (${m.penalty2})`; }
+
+          const label = m.id === '3RD' ? 'Tercer Puesto 🥉' : m.id === 'FINAL' ? 'Gran Final 🏆' : m.id;
+          box.innerHTML = `
+            <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.2rem;display:flex;justify-content:space-between;">
+              <span>${label}</span><span>${formatMatchDate(m.match_date).split(' ')[0]}</span>
+            </div>
+            <div class="bracket-team ${t1cls}">
+              <span class="bracket-team-name">${getFlag(m.team1)} ${m.team1}</span>
+              <span class="bracket-score">${s1}</span>
+            </div>
+            <div class="bracket-team ${t2cls}">
+              <span class="bracket-team-name">${getFlag(m.team2)} ${m.team2}</span>
+              <span class="bracket-score">${s2}</span>
+            </div>
+          `;
+
+          if (!isPlaceholder) {
+            let pill = '';
+            if (isPlayed && pred) {
+              const pts = pred.points;
+              pill = `<span class="points-pill pts-${pts}" style="cursor:pointer;font-size:.6rem;padding:.1rem .4rem" onclick="openPredictionsModal('${m.id}')">${pts} pts</span>`;
+            } else if (isLocked) {
+              pill = `<span class="points-pill pts-0" style="cursor:pointer;font-size:.6rem;padding:.1rem .4rem;background:rgba(99,102,241,.15);color:var(--accent-indigo)" onclick="openPredictionsModal('${m.id}')">👁️</span>`;
+            }
+            const ps = document.createElement('div');
+            ps.style.cssText = 'margin-top:.4rem;border-top:1px solid rgba(255,255,255,.04);padding-top:.4rem';
+            ps.innerHTML = `
+              <div style="display:flex;justify-content:space-between;align-items:center;">
+                <div style="display:flex;align-items:center;gap:.25rem;">
+                  <span style="font-size:.65rem;font-weight:700;color:var(--text-muted)">Pronóstico:</span>
+                  <input type="number" min="0" class="pred-input" id="pred-${m.id}-1" value="${pred != null ? pred.goals1 : ''}" ${isLocked?'disabled':''} style="width:28px;height:24px;font-size:.75rem;border-radius:3px" placeholder="-">
+                  <span style="font-size:.65rem;color:var(--text-dark)">-</span>
+                  <input type="number" min="0" class="pred-input" id="pred-${m.id}-2" value="${pred != null ? pred.goals2 : ''}" ${isLocked?'disabled':''} style="width:28px;height:24px;font-size:.75rem;border-radius:3px" placeholder="-">
+                </div>
+                <div>${isLocked ? pill : `<button class="btn btn-secondary" onclick="savePrediction('${m.id}')" style="padding:.1rem .4rem;font-size:.65rem;border-radius:3px">💾</button>`}</div>
+              </div>`;
+            box.appendChild(ps);
+          } else {
+            const ph = document.createElement('div');
+            ph.style.cssText = 'font-size:.65rem;color:var(--text-dark);text-align:center;margin-top:.25rem';
+            ph.textContent = '🔒 Esperando clasificados';
+            box.appendChild(ph);
+          }
+          col.appendChild(box);
+        });
+        container.appendChild(col);
+      });
+    }
+
+    // ── Modal ─────────────────────────────────────────────────────────────────
+    async function openPredictionsModal(matchId) {
+      const modal = document.getElementById('predictions-modal');
+      const listEl = document.getElementById('modal-predictions-list');
+      listEl.innerHTML = '<p style="text-align:center;color:var(--text-muted)">Cargando...</p>';
+      modal.classList.add('active');
+      try {
+        const data = await apiFetch(`/api/match-predictions/${matchId}`);
+        const m = data.match;
+        document.getElementById('modal-match-title').textContent = `${m.team1} vs ${m.team2}`;
+        document.getElementById('modal-match-details').textContent =
+          (m.stage === 'group' ? `Grupo ${m.group_name}` : 'Eliminatorias') +
+          ' | Resultado: ' + (m.status === 'played' ? `${m.goals1} - ${m.goals2}` : 'No jugado');
+
+        listEl.innerHTML = '';
+        data.predictions.sort((a,b) => (b.prediction?.points ?? -1) - (a.prediction?.points ?? -1));
+        data.predictions.forEach(p => {
+          const card = document.createElement('div');
+          card.className = 'details-prediction-card';
+          const predText = p.prediction ? `${p.prediction.goals1} - ${p.prediction.goals2}` : 'Sin predicción';
+          const pill = (m.status === 'played' && p.prediction)
+            ? `<span class="points-pill pts-${p.prediction.points}">${p.prediction.points} pts</span>` : '';
+          card.innerHTML = `
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <img src="${p.team_crest}" style="width:36px;height:36px;border-radius:50%;object-fit:cover;border:1.5px solid var(--border-light)">
+              <div style="display:flex;flex-direction:column">
+                <span style="font-weight:700;font-size:.9rem">${p.fullname}</span>
+                <span style="font-size:.75rem;color:var(--text-muted)">${p.team_name}</span>
+              </div>
+            </div>
+            <div style="display:flex;align-items:center;gap:.75rem">
+              <span class="details-pred-score">${predText}</span>${pill}
+            </div>`;
+          listEl.appendChild(card);
+        });
+      } catch (err) {
+        listEl.innerHTML = `<p style="text-align:center;color:#ef4444">${err.message}</p>`;
+      }
+    }
+
+    function closePredictionsModal() {
+      document.getElementById('predictions-modal').classList.remove('active');
+    }
+
+    document.getElementById('predictions-modal').addEventListener('click', e => {
+      if (e.target.id === 'predictions-modal') closePredictionsModal();
+    });
+
+    loadDashboard();
+  </script>
+</body>
+</html>

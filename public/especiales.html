@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predicciones Especiales - Porra Mundial 2026</title>
+  <link rel="stylesheet" href="/css/styles.css">
+  <script src="/js/app.js"></script>
+</head>
+<body>
+  
+  <header>
+    <!-- Rendered dynamically by app.js -->
+  </header>
+
+  <main>
+    <div style="max-width: 800px; margin: 0 auto;">
+      <div class="glass-card" style="text-align: center; margin-bottom: 2rem;">
+        <h1 style="font-size: 2rem; font-weight: 800; background: linear-gradient(135deg, #fff 30%, var(--accent-gold) 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; margin-bottom: 0.5rem;">
+          ⭐ Predicciones de Campeón y Goleador
+        </h1>
+        <p style="color: var(--text-muted); font-size: 0.95rem;">
+          Debes guardar tus elecciones antes del partido inaugural del Mundial (11 de Junio de 2026). Una vez comience el torneo, se bloquearán definitivamente y cada acierto sumará <strong>50 puntos adicionales</strong> al final de la competición.
+        </p>
+      </div>
+
+      <div class="special-grid">
+        <!-- Champion Card -->
+        <div class="special-card">
+          <div class="special-icon">🏆</div>
+          <h2>Campeón del Mundo</h2>
+          <p>Elige el equipo nacional que levantará la Copa del Mundo</p>
+          
+          <div class="form-group" style="text-align: left;">
+            <label for="champion-select">Seleccionar Selección</label>
+            <select id="champion-select" class="form-input" style="height: 48px; cursor: pointer;">
+              <option value="">-- Elige un país --</option>
+              <!-- Loaded dynamically -->
+            </select>
+          </div>
+        </div>
+
+        <!-- Top Scorer Card -->
+        <div class="special-card">
+          <div class="special-icon">👟</div>
+          <h2>Máximo Goleador</h2>
+          <p>Escribe el nombre del jugador que marcará más goles en el torneo</p>
+          
+          <div class="form-group" style="text-align: left;">
+            <label for="scorer-input">Nombre del Goleador</label>
+            <input type="text" id="scorer-input" class="form-input" style="height: 48px;" placeholder="ej: Erling Haaland, Kylian Mbappé">
+          </div>
+        </div>
+      </div>
+
+      <div style="text-align: center; margin-top: 2rem;">
+        <button id="btn-save-special" class="btn btn-lg" style="padding: 1rem 3rem;" onclick="saveSpecialPredictions()">
+          💾 Guardar Elecciones
+        </button>
+        <p id="lock-warning" style="margin-top: 1rem; color: #ef4444; font-weight: 700; display: none;">
+          🔒 El torneo ha comenzado. Las predicciones especiales están bloqueadas.
+        </p>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let isLocked = false;
+
+    async function initSpecialPage() {
+      try {
+        // Fetch teams list
+        const teams = await apiFetch('/api/teams');
+        const select = document.getElementById('champion-select');
+        
+        teams.forEach(team => {
+          const opt = document.createElement('option');
+          opt.value = team.name;
+          opt.textContent = `${getFlag(team.name)} ${team.name} (Grupo ${team.group})`;
+          select.appendChild(opt);
+        });
+
+        // Fetch user matches & special predictions
+        const data = await apiFetch('/api/matches');
+        isLocked = data.special.is_locked;
+
+        if (data.special.champion_team) {
+          select.value = data.special.champion_team;
+        }
+        if (data.special.top_scorer) {
+          document.getElementById('scorer-input').value = data.special.top_scorer;
+        }
+
+        if (isLocked) {
+          select.disabled = true;
+          document.getElementById('scorer-input').disabled = true;
+          document.getElementById('btn-save-special').style.display = 'none';
+          document.getElementById('lock-warning').style.display = 'block';
+        }
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    async function saveSpecialPredictions() {
+      if (isLocked) {
+        showToast('Las predicciones están bloqueadas', true);
+        return;
+      }
+
+      const champion = document.getElementById('champion-select').value;
+      const topScorer = document.getElementById('scorer-input').value.trim();
+
+      if (!champion) {
+        showToast('Debes seleccionar un equipo campeón', true);
+        return;
+      }
+
+      if (!topScorer) {
+        showToast('Debes escribir un nombre para el máximo goleador', true);
+        return;
+      }
+
+      try {
+        await apiFetch('/api/predict/special', 'POST', {
+          champion_team: champion,
+          top_scorer: topScorer
+        });
+        showToast('Predicciones especiales guardadas con éxito');
+      } catch (err) {
+        showToast(err.message, true);
+      }
+    }
+
+    // Run on startup
+    initSpecialPage();
+  </script>
+</body>
+</html>

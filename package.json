@@ -1,0 +1,22 @@
+{
+  "name": "mundial2026-polla",
+  "version": "1.0.0",
+  "description": "App de quiniela y predicciones para el Mundial 2026",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node server.js"
+  },
+  "keywords": [
+    "worldcup",
+    "predictions",
+    "express",
+    "webstation"
+  ],
+  "author": "Antigravity",
+  "license": "ISC",
+  "dependencies": {
+    "express": "^4.19.2",
+    "multer": "^1.4.5-lts.1"
+  }
+}
