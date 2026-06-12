@@ -9,13 +9,100 @@ const IS_RENDER = Boolean(process.env.RENDER || process.env.RENDER_SERVICE_ID ||
 const DB_SEED_PATH = path.join(__dirname, 'db.json');
 const DB_PATH = process.env.DB_PATH || (IS_RENDER ? path.join('/tmp', 'db.json') : DB_SEED_PATH);
 const UPLOADS_DIR = process.env.UPLOADS_DIR || (IS_RENDER ? path.join('/tmp', 'uploads') : path.join(__dirname, 'public', 'uploads'));
+const SUPABASE_URL = process.env.SUPABASE_URL;
+const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const USE_SUPABASE = Boolean(SUPABASE_URL && SUPABASE_SERVICE_ROLE_KEY);
+const SUPABASE_DB_KEY = process.env.SUPABASE_DB_KEY || 'db';
+
+let dbCache = null;
 
 function ensureRuntimeDb() {
+  if (USE_SUPABASE) return;
   if (DB_PATH === DB_SEED_PATH) return;
   if (fs.existsSync(DB_PATH)) return;
   if (!fs.existsSync(DB_SEED_PATH)) return;
   fs.mkdirSync(path.dirname(DB_PATH), { recursive: true });
   fs.copyFileSync(DB_SEED_PATH, DB_PATH);
+}
+
+function ensureDbShape(db) {
+  if (!db) return null;
+  if (!db.users) db.users = [];
+  if (!db.matches) db.matches = [];
+  if (!db.predictions) db.predictions = [];
+  if (!db.special_predictions) db.special_predictions = [];
+  if (!db.settings) db.settings = {};
+  if (db.settings.tournament_start_time === undefined) db.settings.tournament_start_time = "2026-06-11T18:00:00Z";
+  if (db.settings.special_locked === undefined) db.settings.special_locked = false;
+  if (!db.teams) db.teams = [];
+  return db;
+}
+
+async function loadDbFromSupabase() {
+  const baseUrl = `${SUPABASE_URL}/rest/v1`;
+  const res = await fetch(`${baseUrl}/app_kv?key=eq.${encodeURIComponent(SUPABASE_DB_KEY)}&select=value`, {
+    method: 'GET',
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`
+    }
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Supabase read failed: ${res.status} ${text}`);
+  }
+
+  const rows = await res.json();
+  if (!Array.isArray(rows) || rows.length === 0) return null;
+  return rows[0].value || null;
+}
+
+async function saveDbToSupabase(db) {
+  const baseUrl = `${SUPABASE_URL}/rest/v1`;
+  const payload = {
+    key: SUPABASE_DB_KEY,
+    value: db,
+    updated_at: new Date().toISOString()
+  };
+
+  const res = await fetch(`${baseUrl}/app_kv`, {
+    method: 'POST',
+    headers: {
+      apikey: SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${SUPABASE_SERVICE_ROLE_KEY}`,
+      'Content-Type': 'application/json',
+      Prefer: 'resolution=merge-duplicates,return=minimal'
+    },
+    body: JSON.stringify(payload)
+  });
+
+  if (!res.ok) {
+    const text = await res.text().catch(() => '');
+    throw new Error(`Supabase write failed: ${res.status} ${text}`);
+  }
+}
+
+async function initPersistentDb() {
+  if (!USE_SUPABASE) return;
+
+  try {
+    dbCache = await loadDbFromSupabase();
+  } catch (err) {
+    console.error(err);
+    dbCache = null;
+  }
+
+  if (!dbCache) {
+    if (fs.existsSync(DB_SEED_PATH)) {
+      dbCache = JSON.parse(fs.readFileSync(DB_SEED_PATH, 'utf8'));
+    } else {
+      dbCache = { users: [], matches: [], predictions: [], special_predictions: [], settings: { champion: null, top_scorer: null, tournament_start_time: "2026-06-11T18:00:00Z", special_locked: false }, teams: [] };
+    }
+  }
+
+  ensureDbShape(dbCache);
+  await saveDbToSupabase(dbCache);
 }
 
 // Create upload directory if it doesn't exist
@@ -48,43 +135,31 @@ const upload = multer({
 // JSON Database helper with sequential queue to prevent corruption
 let dbQueue = Promise.resolve();
 function readDb() {
-  // #region debug-point A:read-db
-  (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'A',location:'server.js:readDb:entry',msg:'[DEBUG] readDb entry',data:{dbPath:DB_PATH,dbSeedPath:DB_SEED_PATH,isRender:IS_RENDER,dbExists:fs.existsSync(DB_PATH),seedExists:fs.existsSync(DB_SEED_PATH)},ts:Date.now()})}).catch(()=>{})})();
-  // #endregion
+  if (USE_SUPABASE) {
+    return ensureDbShape(dbCache);
+  }
   ensureRuntimeDb();
   if (!fs.existsSync(DB_PATH)) {
-    // #region debug-point A:read-db-missing
-    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'A',location:'server.js:readDb:missing',msg:'[DEBUG] readDb missing db file',data:{dbPath:DB_PATH},ts:Date.now()})}).catch(()=>{})})();
-    // #endregion
     return null;
   }
   const data = fs.readFileSync(DB_PATH, 'utf8');
   const db = JSON.parse(data);
-  // #region debug-point B:read-db-success
-  (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'B',location:'server.js:readDb:parsed',msg:'[DEBUG] readDb parsed successfully',data:{hasUsers:Array.isArray(db?.users),hasMatches:Array.isArray(db?.matches),hasPredictions:Array.isArray(db?.predictions),hasSpecialPredictions:Array.isArray(db?.special_predictions),hasSettings:Boolean(db?.settings),hasTeams:Array.isArray(db?.teams)},ts:Date.now()})}).catch(()=>{})})();
-  // #endregion
-  
-  // Initialize missing sections
-  if (!db.predictions) db.predictions = [];
-  if (!db.special_predictions) db.special_predictions = [];
-  if (!db.settings) db.settings = {};
-  if (db.settings.special_locked === undefined) db.settings.special_locked = false;
-  if (!db.teams) db.teams = [];
-  
-  return db;
+  return ensureDbShape(db);
 }
 
 function writeDb(data) {
-  return new Promise((resolve, reject) => {
-    dbQueue = dbQueue.then(() => {
-      try {
-        fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
-        resolve();
-      } catch (err) {
-        reject(err);
-      }
-    });
+  dbQueue = dbQueue.then(async () => {
+    if (USE_SUPABASE) {
+      dbCache = data;
+      ensureDbShape(dbCache);
+      await saveDbToSupabase(dbCache);
+      return;
+    }
+
+    fs.writeFileSync(DB_PATH, JSON.stringify(data, null, 2), 'utf8');
   });
+
+  return dbQueue;
 }
 
 // Scoring logic
@@ -499,9 +574,6 @@ function initializeDatabase() {
   console.log("Database initialized successfully!");
 }
 
-// Run DB Initialization
-initializeDatabase();
-
 // Auth helper middleware
 function authUser(req, res, next) {
   const username = req.headers['x-username'];
@@ -512,6 +584,9 @@ function authUser(req, res, next) {
   }
 
   const db = readDb();
+  if (!db) {
+    return res.status(503).json({ error: 'Base de datos no disponible' });
+  }
   const user = db.users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.access_code === accessCode);
 
   if (!user) {
@@ -537,6 +612,9 @@ function authAdmin(req, res, next) {
 
   // Also check if they are flagged as admin in DB
   const db = readDb();
+  if (!db) {
+    return res.status(503).json({ error: 'Base de datos no disponible' });
+  }
   const user = db.users.find(u => u.username.toLowerCase() === username.toLowerCase() && u.access_code === accessCode);
 
   if (user && user.is_admin) {
@@ -1307,9 +1385,6 @@ app.get('/api/admin/users', authAdmin, (req, res) => {
 app.get('/api/admin/export', authAdmin, (req, res) => {
   try {
     const db = readDb();
-    // #region debug-point C:export-entry
-    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'C',location:'server.js:/api/admin/export:entry',msg:'[DEBUG] export endpoint entered',data:{adminUser:req.user?.username||null,dbIsNull:db===null,keys:db?Object.keys(db):[]},ts:Date.now()})}).catch(()=>{})})();
-    // #endregion
     const exportData = {
       exported_at: new Date().toISOString(),
       version: '1.0.0',
@@ -1322,14 +1397,8 @@ app.get('/api/admin/export', authAdmin, (req, res) => {
     };
     res.setHeader('Content-Disposition', `attachment; filename="mundial_backup_${new Date().toISOString().split('T')[0]}.json"`);
     res.setHeader('Content-Type', 'application/json');
-    // #region debug-point D:export-ready
-    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'D',location:'server.js:/api/admin/export:ready',msg:'[DEBUG] export response ready',data:{users:Array.isArray(exportData.users)?exportData.users.length:null,matches:Array.isArray(exportData.matches)?exportData.matches.length:null,predictions:Array.isArray(exportData.predictions)?exportData.predictions.length:null,specialPredictions:Array.isArray(exportData.special_predictions)?exportData.special_predictions.length:null,teams:Array.isArray(exportData.teams)?exportData.teams.length:null},ts:Date.now()})}).catch(()=>{})})();
-    // #endregion
     res.json(exportData);
   } catch (err) {
-    // #region debug-point E:export-error
-    (()=>{const fs=require('fs'),p='.dbg/export-500.env';let u='http://127.0.0.1:7777/event',s='export-500';try{const e=fs.readFileSync(p,'utf8');u=e.match(/DEBUG_SERVER_URL=(.+)/)?.[1]||u;s=e.match(/DEBUG_SESSION_ID=(.+)/)?.[1]||s}catch{}fetch(u,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({sessionId:s,runId:'pre-fix',hypothesisId:'E',location:'server.js:/api/admin/export:catch',msg:'[DEBUG] export failed',data:{name:err?.name||null,message:err?.message||null,stack:String(err?.stack||'').split('\n').slice(0,4)},ts:Date.now()})}).catch(()=>{})})();
-    // #endregion
     console.error(err);
     res.status(500).json({ error: 'Error al exportar datos' });
   }
@@ -1589,7 +1658,19 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Start server
-app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+async function startServer() {
+  if (USE_SUPABASE) {
+    await initPersistentDb();
+  } else {
+    initializeDatabase();
+  }
+
+  app.listen(PORT, () => {
+    console.log(`Server running on port ${PORT}`);
+  });
+}
+
+startServer().catch(err => {
+  console.error(err);
+  process.exit(1);
 });
