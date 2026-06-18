@@ -1485,10 +1485,6 @@ details[open] .guide-summary::before {
     min-width: 500px;
   }
 
-  .score-breakdown-cell {
-    display: none;
-  }
-
   .details-prediction-card {
     flex-direction: column;
     gap: 0.5rem;

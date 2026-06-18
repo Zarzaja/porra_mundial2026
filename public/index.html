@@ -86,11 +86,16 @@
     <div id="group-section">
       <div class="group-filter-row">
         <!-- Group sub-tabs -->
-        <div class="subtabs-container" id="group-subtabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0;"></div>
+        <div class="subtabs-container" id="group-subtabs" style="margin-bottom:0; border-bottom:none; padding-bottom:0; visibility: hidden;"></div>
         <!-- View toggle -->
-        <div class="group-view-toggle">
-          <button class="view-toggle-btn active" id="btn-view-groups" onclick="setGroupView('groups')">🗂️ Por Grupos</button>
-          <button class="view-toggle-btn" id="btn-view-days" onclick="setGroupView('days')">📆 Por Días</button>
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+          <label id="finished-filter-container" style="display:flex; align-items:center; gap:0.35rem; font-size:0.85rem; color:var(--text-muted); cursor:pointer; user-select:none;">
+            <input type="checkbox" id="hide-finished-checkbox" onchange="renderGroupSection()" style="cursor:pointer;"> Ocultar finalizados
+          </label>
+          <div class="group-view-toggle">
+            <button class="view-toggle-btn" id="btn-view-groups" onclick="setGroupView('groups')">🗂️ Por Grupos</button>
+            <button class="view-toggle-btn active" id="btn-view-days" onclick="setGroupView('days')">📆 Por Días</button>
+          </div>
         </div>
       </div>
 
@@ -131,7 +136,7 @@
     let allMatches = [];
     let currentMainTab = 'group';
     let currentGroup = 'A';
-    let currentGroupView = 'groups'; // 'groups' or 'days'
+    let currentGroupView = 'days'; // changed default to days view
 
     // ── Load ─────────────────────────────────────────────────────────────────
     async function loadDashboard() {
@@ -184,6 +189,12 @@
       const subtabs = document.getElementById('group-subtabs');
       subtabs.style.visibility = view === 'groups' ? 'visible' : 'hidden';
 
+      // Hide/show finished filter
+      const filterCont = document.getElementById('finished-filter-container');
+      if (filterCont) {
+        filterCont.style.display = view === 'days' ? 'flex' : 'none';
+      }
+
       renderGroupSection();
     }
 
@@ -209,7 +220,14 @@
       const container = document.getElementById('matches-list');
       container.innerHTML = '';
 
-      const groupMatches = allMatches.filter(m => m.stage === 'group');
+      let groupMatches = allMatches.filter(m => m.stage === 'group');
+
+      // Filter finished matches if checked
+      const hideFinished = document.getElementById('hide-finished-checkbox')?.checked;
+      if (hideFinished) {
+        groupMatches = groupMatches.filter(m => m.status !== 'played');
+      }
+
       groupMatches.sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
 
       // Group by calendar day (in local time)

@@ -63,16 +63,22 @@
           <form id="editor-form" onsubmit="submitMatchResult(event)">
             <input type="hidden" id="editor-match-id">
             
+            <!-- Match Date/Time Input -->
+            <div class="form-group">
+              <label for="editor-match-date">Fecha y Hora (Local)</label>
+              <input type="datetime-local" id="editor-match-date" class="form-input" required>
+            </div>
+
             <!-- Team 1 Input -->
             <div class="form-group">
               <label id="editor-team1-label" for="editor-goals1">Goles Team 1</label>
-              <input type="number" min="0" id="editor-goals1" class="form-input" required>
+              <input type="number" min="0" id="editor-goals1" class="form-input">
             </div>
 
             <!-- Team 2 Input -->
             <div class="form-group">
               <label id="editor-team2-label" for="editor-goals2">Goles Team 2</label>
-              <input type="number" min="0" id="editor-goals2" class="form-input" required>
+              <input type="number" min="0" id="editor-goals2" class="form-input">
             </div>
 
             <!-- Penalty Shootout Inputs (shown dynamically for knockouts if tie) -->
@@ -454,11 +460,16 @@
               <th style="text-align:left; padding:0.5rem;">Equipo</th>
               <th style="text-align:center; padding:0.5rem;">Código</th>
               <th style="text-align:center; padding:0.5rem;">Puntos</th>
+              <th style="text-align:center; padding:0.5rem;">Acciones</th>
             </tr>
           </thead>
           <tbody>`;
 
         data.users.forEach(u => {
+          const deleteBtn = u.is_admin 
+            ? '' 
+            : `<button type="button" class="btn btn-secondary" style="padding:0.25rem 0.5rem; background:rgba(239,68,68,0.15); color:#ef4444; border-color:rgba(239,68,68,0.2);" onclick="deleteUser(${u.id}, '${u.fullname.replace(/'/g, "\\'")}')">❌ Eliminar</button>`;
+
           html += `<tr style="border-bottom:1px solid var(--border-light);">
             <td style="padding:0.5rem;">
               <div style="display:flex; align-items:center; gap:0.5rem;">
@@ -470,6 +481,7 @@
             <td style="padding:0.5rem;">${u.team_name}</td>
             <td style="padding:0.5rem; text-align:center; font-family:monospace; font-weight:600;">${u.access_code}</td>
             <td style="padding:0.5rem; text-align:center;">${u.score_total || 0}</td>
+            <td style="padding:0.5rem; text-align:center;">${deleteBtn}</td>
           </tr>`;
         });
 
@@ -478,6 +490,19 @@
 
       } catch (err) {
         list.innerHTML = `<p style="color:#ef4444; text-align:center;">Error: ${err.message}</p>`;
+      }
+    }
+
+    async function deleteUser(userId, fullname) {
+      if (!confirm(`¿Estás seguro de que deseas eliminar permanentemente al usuario "${fullname}"? Esta acción borrará todas sus predicciones y no se puede deshacer.`)) {
+        return;
+      }
+      try {
+        await apiFetch(`/api/admin/users/${userId}`, 'DELETE');
+        showToast(`Usuario "${fullname}" eliminado correctamente.`);
+        await loadUsersList();
+      } catch (err) {
+        showToast(err.message, true);
       }
     }
 
@@ -679,6 +704,18 @@
       document.getElementById('editor-goals2').value = match.goals2 !== null ? match.goals2 : '';
       document.getElementById('editor-status').value = match.status;
 
+      if (match.match_date) {
+        const localDate = new Date(match.match_date);
+        const year = localDate.getFullYear();
+        const month = String(localDate.getMonth() + 1).padStart(2, '0');
+        const day = String(localDate.getDate()).padStart(2, '0');
+        const hours = String(localDate.getHours()).padStart(2, '0');
+        const minutes = String(localDate.getMinutes()).padStart(2, '0');
+        document.getElementById('editor-match-date').value = `${year}-${month}-${day}T${hours}:${minutes}`;
+      } else {
+        document.getElementById('editor-match-date').value = '';
+      }
+
       document.getElementById('editor-team1-label').textContent = `Goles ${match.team1}`;
       document.getElementById('editor-team2-label').textContent = `Goles ${match.team2}`;
 
@@ -795,11 +832,18 @@
       const goals2 = document.getElementById('editor-goals2').value;
       const status = document.getElementById('editor-status').value;
       
+      const matchDateVal = document.getElementById('editor-match-date').value;
+      let match_date = null;
+      if (matchDateVal) {
+        match_date = new Date(matchDateVal).toISOString();
+      }
+
       const body = {
         match_id: id,
         goals1,
         goals2,
-        status
+        status,
+        match_date
       };
 
       // Penalty logic

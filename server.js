@@ -1226,17 +1226,29 @@ const propagationMap = {
 
 app.post('/api/admin/match', authAdmin, async (req, res) => {
   try {
-    const { match_id, goals1, goals2, penalty1, penalty2, status } = req.body;
+    const { match_id, goals1, goals2, penalty1, penalty2, status, match_date } = req.body;
     
-    if (goals1 === undefined || goals2 === undefined || goals1 === '' || goals2 === '') {
-      return res.status(400).json({ error: 'Debe ingresar los goles' });
-    }
+    const isScheduled = status === 'scheduled';
+    let g1 = null;
+    let g2 = null;
 
-    const g1 = parseInt(goals1, 10);
-    const g2 = parseInt(goals2, 10);
-
-    if (isNaN(g1) || isNaN(g2) || g1 < 0 || g2 < 0) {
-      return res.status(400).json({ error: 'Los goles deben ser números válidos' });
+    if (!isScheduled) {
+      if (goals1 === undefined || goals2 === undefined || goals1 === '' || goals2 === '') {
+        return res.status(400).json({ error: 'Debe ingresar los goles para un partido finalizado' });
+      }
+      g1 = parseInt(goals1, 10);
+      g2 = parseInt(goals2, 10);
+      if (isNaN(g1) || isNaN(g2) || g1 < 0 || g2 < 0) {
+        return res.status(400).json({ error: 'Los goles deben ser números válidos' });
+      }
+    } else {
+      if (goals1 !== undefined && goals1 !== '' && goals2 !== undefined && goals2 !== '') {
+        g1 = parseInt(goals1, 10);
+        g2 = parseInt(goals2, 10);
+        if (isNaN(g1) || isNaN(g2) || g1 < 0 || g2 < 0) {
+          return res.status(400).json({ error: 'Los goles deben ser números válidos' });
+        }
+      }
     }
 
     const db = readDb();
@@ -1250,11 +1262,15 @@ app.post('/api/admin/match', authAdmin, async (req, res) => {
     match.goals2 = g2;
     match.status = status || 'played';
 
+    if (match_date) {
+      match.match_date = match_date;
+    }
+
     // If it's a knockout stage match and score is tie, check penaltis to determine who passes
     let winner = null;
     let loser = null;
 
-    if (match.stage !== 'group') {
+    if (match.stage !== 'group' && !isScheduled) {
       const p1 = penalty1 !== undefined && penalty1 !== '' ? parseInt(penalty1, 10) : null;
       const p2 = penalty2 !== undefined && penalty2 !== '' ? parseInt(penalty2, 10) : null;
       
@@ -1299,6 +1315,9 @@ app.post('/api/admin/match', authAdmin, async (req, res) => {
           if (thirdMatch) thirdMatch[propInfo.loserSlot] = loser;
         }
       }
+    } else if (isScheduled) {
+      match.penalty1 = null;
+      match.penalty2 = null;
     }
 
     // Recalculate all scores
@@ -1378,6 +1397,51 @@ app.get('/api/admin/users', authAdmin, (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+});
+
+// Admin: Delete a user
+app.delete('/api/admin/users/:id', authAdmin, async (req, res) => {
+  try {
+    const targetUserId = parseInt(req.params.id, 10);
+    if (isNaN(targetUserId)) {
+      return res.status(400).json({ error: 'ID de usuario inválido' });
+    }
+
+    if (req.user && req.user.id === targetUserId) {
+      return res.status(400).json({ error: 'No puedes eliminarte a ti mismo' });
+    }
+
+    const db = readDb();
+    if (!db) {
+      return res.status(503).json({ error: 'Base de datos no disponible' });
+    }
+
+    const userIndex = db.users.findIndex(u => u.id === targetUserId);
+    if (userIndex === -1) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    const userToDelete = db.users[userIndex];
+    if (userToDelete.is_admin && userToDelete.username === 'Zarzaja') {
+      return res.status(400).json({ error: 'No se puede eliminar al administrador principal' });
+    }
+
+    // Remove user
+    db.users.splice(userIndex, 1);
+
+    // Remove predictions
+    db.predictions = db.predictions.filter(p => p.user_id !== targetUserId);
+
+    // Remove special predictions
+    db.special_predictions = db.special_predictions.filter(sp => sp.user_id !== targetUserId);
+
+    await writeDb(db);
+
+    res.json({ success: true, message: `Usuario ${userToDelete.fullname} eliminado correctamente.` });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al eliminar usuario' });
   }
 });
 
