@@ -29,11 +29,27 @@
 
           <div class="form-group">
             <label for="crest-upload">Escudo del Equipo</label>
-            <div style="display: flex; align-items: center; gap: 1rem; margin-top: 0.5rem;">
-              <img id="current-crest" src="/uploads/default-crest.png" style="width: 60px; height: 60px; object-fit: contain; background: rgba(255,255,255,0.1); border-radius: 8px;">
-              <input type="file" id="crest-upload" class="form-input" accept="image/*" style="flex: 1;">
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 0.5rem;">
+              <div style="display: flex; align-items: center; gap: 1rem;">
+                <img id="current-crest" src="/uploads/default-crest.png" style="width: 60px; height: 60px; object-fit: contain; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                <input type="file" id="crest-upload" class="form-input" accept="image/*" style="flex: 1;">
+              </div>
+              
+              <!-- Default library selection -->
+              <div>
+                <label style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 0.5rem; display: block;">O elige uno de nuestra biblioteca:</label>
+                <input type="hidden" id="selected-default-crest" name="default_crest" value="">
+                <div class="default-crests-grid" style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                  <img class="default-crest-option" src="/uploads/crest-default-1.svg" data-filename="crest-default-1.svg" style="width: 40px; height: 40px; cursor: pointer; border: 2px solid transparent; border-radius: 8px; padding: 2px; transition: all 0.2s;" onclick="selectDefaultCrest(this)">
+                  <img class="default-crest-option" src="/uploads/crest-default-2.svg" data-filename="crest-default-2.svg" style="width: 40px; height: 40px; cursor: pointer; border: 2px solid transparent; border-radius: 8px; padding: 2px; transition: all 0.2s;" onclick="selectDefaultCrest(this)">
+                  <img class="default-crest-option" src="/uploads/crest-default-3.svg" data-filename="crest-default-3.svg" style="width: 40px; height: 40px; cursor: pointer; border: 2px solid transparent; border-radius: 8px; padding: 2px; transition: all 0.2s;" onclick="selectDefaultCrest(this)">
+                  <img class="default-crest-option" src="/uploads/crest-default-4.svg" data-filename="crest-default-4.svg" style="width: 40px; height: 40px; cursor: pointer; border: 2px solid transparent; border-radius: 8px; padding: 2px; transition: all 0.2s;" onclick="selectDefaultCrest(this)">
+                  <img class="default-crest-option" src="/uploads/crest-default-5.svg" data-filename="crest-default-5.svg" style="width: 40px; height: 40px; cursor: pointer; border: 2px solid transparent; border-radius: 8px; padding: 2px; transition: all 0.2s;" onclick="selectDefaultCrest(this)">
+                  <img class="default-crest-option" src="/uploads/crest-default-6.svg" data-filename="crest-default-6.svg" style="width: 40px; height: 40px; cursor: pointer; border: 2px solid transparent; border-radius: 8px; padding: 2px; transition: all 0.2s;" onclick="selectDefaultCrest(this)">
+                </div>
+              </div>
             </div>
-            <small style="color: var(--text-muted); font-size: 0.8rem;">Máximo 5MB. Formatos: JPG, PNG, GIF</small>
+            <small style="color: var(--text-muted); font-size: 0.8rem;">Máximo 5MB. Formatos: JPG, PNG, GIF, SVG</small>
           </div>
 
           <div id="preview-section" style="display: none; margin-top: 1rem; text-align: center;">
@@ -72,7 +88,18 @@
       try {
         const data = await apiFetch('/api/profile');
         document.getElementById('team_name').value = data.user.team_name || '';
-        document.getElementById('current-crest').src = data.user.team_crest || '/uploads/default-crest.png';
+        const currentCrestUrl = data.user.team_crest || '/uploads/default-crest.png';
+        document.getElementById('current-crest').src = currentCrestUrl;
+        
+        // Highlight active default crest if matches
+        if (currentCrestUrl.includes('crest-default-')) {
+          const filename = currentCrestUrl.split('/').pop();
+          const option = document.querySelector(`.default-crest-option[data-filename="${filename}"]`);
+          if (option) {
+            option.style.borderColor = 'var(--accent-indigo)';
+            document.getElementById('selected-default-crest').value = filename;
+          }
+        }
       } catch (err) {
         showToast(err.message, true);
       }
@@ -87,8 +114,26 @@
             document.getElementById('preview-section').style.display = 'block';
           };
           reader.readAsDataURL(file);
+
+          // Clear default selections
+          document.querySelectorAll('.default-crest-option').forEach(opt => {
+            opt.style.borderColor = 'transparent';
+          });
+          document.getElementById('selected-default-crest').value = '';
         }
       });
+    }
+
+    function selectDefaultCrest(el) {
+      document.querySelectorAll('.default-crest-option').forEach(opt => {
+        opt.style.borderColor = 'transparent';
+      });
+      el.style.borderColor = 'var(--accent-indigo)';
+      document.getElementById('selected-default-crest').value = el.getAttribute('data-filename');
+      // Clear file input since we selected a default one
+      document.getElementById('crest-upload').value = '';
+      document.getElementById('preview-section').style.display = 'none';
+      document.getElementById('current-crest').src = el.src;
     }
 
     document.getElementById('profile-form').addEventListener('submit', async (e) => {
@@ -103,6 +148,10 @@
       }
       if (crestInput.files[0]) {
         formData.append('crest', crestInput.files[0]);
+      }
+      const defaultCrest = document.getElementById('selected-default-crest').value;
+      if (defaultCrest) {
+        formData.append('default_crest', defaultCrest);
       }
 
       try {

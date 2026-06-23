@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="grad4" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#db2777" />
+      <stop offset="100%" stop-color="#831843" />
+    </linearGradient>
+    <linearGradient id="starGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#facc15" />
+    </linearGradient>
+  </defs>
+  <!-- Shield shape -->
+  <path d="M50 5 L85 20 C85 55 50 95 50 95 C50 95 15 55 15 20 Z" fill="url(#grad4)" stroke="#f472b6" stroke-width="4"/>
+  <!-- Star -->
+  <path d="M50 20 L58 38 L78 40 L62 53 L67 73 L50 62 L33 73 L38 53 L22 40 L42 38 Z" fill="url(#starGrad)" stroke="#ca8a04" stroke-width="1.5"/>
+</svg>

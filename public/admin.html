@@ -41,9 +41,15 @@
     <div id="admin-scores-view" class="admin-grid">
       <!-- Matches List (Left) -->
       <div>
-        <h3 style="margin-bottom:0.75rem; font-size:1.1rem; color:var(--accent-gold)">Listado de Partidos</h3>
-        <div style="margin-bottom: 1rem;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom:0.75rem;">
+          <h3 style="margin:0; font-size:1.1rem; color:var(--accent-gold)">Listado de Partidos</h3>
+          <button type="button" class="btn" onclick="openAddMatchModal()" style="padding: 0.35rem 0.75rem; font-size: 0.8rem; background: var(--accent-indigo);">➕ Añadir Partido</button>
+        </div>
+        <div style="margin-bottom: 1rem; display: flex; flex-direction: column; gap: 0.5rem;">
           <input type="text" id="admin-match-search" class="form-input" placeholder="🔍 Buscar país o fase..." oninput="filterAdminMatches()">
+          <label style="display:flex; align-items:center; gap:0.35rem; font-size:0.85rem; color:var(--text-muted); cursor:pointer; user-select:none;">
+            <input type="checkbox" id="admin-hide-finished-checkbox" onchange="filterAdminMatches()" style="cursor:pointer;"> Ocultar finalizados
+          </label>
         </div>
         <div class="admin-match-list" id="admin-match-list">
           <!-- Loaded dynamically -->
@@ -145,6 +151,61 @@
             </div>
             <div id="match-predictions-list"></div>
           </div>
+        </div>
+
+        <!-- Add Match Form (Right) -->
+        <div class="glass-card" id="add-match-card" style="display: none;">
+          <h3 style="margin-bottom:1rem; border-bottom:1px solid var(--border-light); padding-bottom:0.5rem; color:var(--accent-indigo)">
+            Añadir Nuevo Partido
+          </h3>
+          <form id="add-match-form" onsubmit="submitNewMatch(event)">
+            <!-- Group Select -->
+            <div class="form-group">
+              <label for="add-match-group">Grupo</label>
+              <select id="add-match-group" class="form-input" required onchange="populateAddMatchTeams()">
+                <option value="">-- Seleccionar Grupo --</option>
+                <option value="A">Grupo A</option>
+                <option value="B">Grupo B</option>
+                <option value="C">Grupo C</option>
+                <option value="D">Grupo D</option>
+                <option value="E">Grupo E</option>
+                <option value="F">Grupo F</option>
+                <option value="G">Grupo G</option>
+                <option value="H">Grupo H</option>
+                <option value="I">Grupo I</option>
+                <option value="J">Grupo J</option>
+                <option value="K">Grupo K</option>
+                <option value="L">Grupo L</option>
+              </select>
+            </div>
+
+            <!-- Team 1 Select -->
+            <div class="form-group">
+              <label for="add-match-team1">Equipo Local (País)</label>
+              <select id="add-match-team1" class="form-input" required>
+                <option value="">-- Seleccionar Equipo 1 --</option>
+              </select>
+            </div>
+
+            <!-- Team 2 Select -->
+            <div class="form-group">
+              <label for="add-match-team2">Equipo Visitante (País)</label>
+              <select id="add-match-team2" class="form-input" required>
+                <option value="">-- Seleccionar Equipo 2 --</option>
+              </select>
+            </div>
+
+            <!-- Match Date/Time Input -->
+            <div class="form-group">
+              <label for="add-match-date">Fecha y Hora (Local)</label>
+              <input type="datetime-local" id="add-match-date" class="form-input" required>
+            </div>
+
+            <div style="display:flex; gap:1rem; margin-top:1.5rem;">
+              <button type="submit" class="btn" style="flex:1">➕ Guardar Partido</button>
+              <button type="button" class="btn btn-secondary" onclick="closeAddMatch()">Cancelar</button>
+            </div>
+          </form>
         </div>
 
         <div class="glass-card" id="editor-placeholder" style="text-align:center; padding: 3rem; color:var(--text-muted)">
@@ -671,16 +732,21 @@
         `;
         container.appendChild(item);
       });
+
+      filterAdminMatches();
     }
 
     function filterAdminMatches() {
       const query = document.getElementById('admin-match-search').value.toLowerCase().trim();
+      const hideFinished = document.getElementById('admin-hide-finished-checkbox')?.checked;
       const items = document.querySelectorAll('.admin-match-item');
       
       adminMatches.forEach((m, idx) => {
         const matchText = `${m.team1} ${m.team2} ${m.stage} ${m.id} ${m.group_name || ''}`.toLowerCase();
-        const matches = matchText.includes(query);
-        items[idx].style.display = matches ? 'flex' : 'none';
+        const matchesText = matchText.includes(query);
+        const matchesFilter = !hideFinished || m.status !== 'played';
+        
+        items[idx].style.display = (matchesText && matchesFilter) ? 'flex' : 'none';
       });
     }
 
@@ -693,6 +759,7 @@
       });
 
       document.getElementById('editor-placeholder').style.display = 'none';
+      document.getElementById('add-match-card').style.display = 'none';
       const card = document.getElementById('editor-card');
       card.style.display = 'block';
 
@@ -757,10 +824,92 @@
 
     function closeEditor() {
       document.getElementById('editor-card').style.display = 'none';
+      document.getElementById('add-match-card').style.display = 'none';
       document.getElementById('editor-placeholder').style.display = 'block';
       selectedMatch = null;
       document.querySelectorAll('.admin-match-item').forEach(item => item.classList.remove('active'));
       document.getElementById('match-predictions-container').style.display = 'none';
+    }
+
+    function openAddMatchModal() {
+      selectedMatch = null;
+      document.querySelectorAll('.admin-match-item').forEach(item => item.classList.remove('active'));
+      
+      document.getElementById('editor-placeholder').style.display = 'none';
+      document.getElementById('editor-card').style.display = 'none';
+      document.getElementById('add-match-card').style.display = 'block';
+
+      document.getElementById('add-match-form').reset();
+      populateAddMatchTeams();
+    }
+
+    function closeAddMatch() {
+      document.getElementById('add-match-card').style.display = 'none';
+      document.getElementById('editor-placeholder').style.display = 'block';
+    }
+
+    function populateAddMatchTeams() {
+      const group = document.getElementById('add-match-group').value;
+      const team1Select = document.getElementById('add-match-team1');
+      const team2Select = document.getElementById('add-match-team2');
+      
+      team1Select.innerHTML = '<option value="">-- Seleccionar Equipo 1 --</option>';
+      team2Select.innerHTML = '<option value="">-- Seleccionar Equipo 2 --</option>';
+
+      if (!group) return;
+
+      const groupTeams = adminTeamsList.filter(t => t.group === group);
+      groupTeams.forEach(t => {
+        const opt1 = document.createElement('option');
+        opt1.value = t.name;
+        opt1.textContent = `${getFlag(t.name)} ${t.name}`;
+        team1Select.appendChild(opt1);
+
+        const opt2 = document.createElement('option');
+        opt2.value = t.name;
+        opt2.textContent = `${getFlag(t.name)} ${t.name}`;
+        team2Select.appendChild(opt2);
+      });
+    }
+
+    async function submitNewMatch(e) {
+      e.preventDefault();
+
+      const group_name = document.getElementById('add-match-group').value;
+      const team1 = document.getElementById('add-match-team1').value;
+      const team2 = document.getElementById('add-match-team2').value;
+      const localDateVal = document.getElementById('add-match-date').value;
+
+      if (team1 === team2) {
+        showToast('El equipo local y visitante no pueden ser el mismo', true);
+        return;
+      }
+
+      let match_date = null;
+      if (localDateVal) {
+        match_date = new Date(localDateVal).toISOString();
+      }
+
+      const body = {
+        group_name,
+        team1,
+        team2,
+        match_date
+      };
+
+      try {
+        const res = await apiFetch('/api/admin/add-match', 'POST', body);
+        showToast(`Partido agregado correctamente en el grupo ${group_name}.`);
+
+        // Reload matches from API
+        const freshData = await apiFetch('/api/matches');
+        adminMatches = freshData.matches;
+
+        renderAdminMatchesList();
+        closeAddMatch();
+      } catch (err) {
+        showToast(err.message, true);
+      }
     }
 
     async function loadMatchPredictions() {

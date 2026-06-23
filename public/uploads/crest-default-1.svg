@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100" height="100">
+  <defs>
+    <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#4f46e5" />
+      <stop offset="100%" stop-color="#311042" />
+    </linearGradient>
+    <linearGradient id="gold" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fbbf24" />
+      <stop offset="100%" stop-color="#d97706" />
+    </linearGradient>
+  </defs>
+  <!-- Shield shape -->
+  <path d="M50 5 L85 20 C85 55 50 95 50 95 C50 95 15 55 15 20 Z" fill="url(#grad1)" stroke="#818cf8" stroke-width="4"/>
+  <!-- Trophy -->
+  <path d="M35 30 H65 V45 C65 52 58 58 50 58 C42 58 35 52 35 45 Z" fill="url(#gold)"/>
+  <path d="M46 58 H54 V70 H46 Z" fill="url(#gold)"/>
+  <path d="M38 70 H62 V75 H38 Z" fill="url(#gold)"/>
+  <!-- Handles -->
+  <path d="M35 34 C30 34 30 42 35 42 M65 34 C70 34 70 42 65 42" stroke="url(#gold)" stroke-width="3" fill="none"/>
+</svg>

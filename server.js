@@ -35,6 +35,14 @@ function ensureDbShape(db) {
   if (db.settings.tournament_start_time === undefined) db.settings.tournament_start_time = "2026-06-11T18:00:00Z";
   if (db.settings.special_locked === undefined) db.settings.special_locked = false;
   if (!db.teams) db.teams = [];
+
+  // Migration: set default shield from library to users who don't have one (have default-crest.png)
+  db.users.forEach((u, index) => {
+    if (!u.team_crest || u.team_crest === '/uploads/default-crest.png') {
+      u.team_crest = `/uploads/crest-default-${(index % 6) + 1}.svg`;
+    }
+  });
+
   return db;
 }
 
@@ -681,6 +689,10 @@ app.post('/api/register', (req, res, next) => {
     let crestPath = '/uploads/default-crest.png';
     if (req.file) {
       crestPath = '/uploads/' + req.file.filename;
+    } else if (req.body.default_crest) {
+      crestPath = '/uploads/' + req.body.default_crest;
+    } else {
+      crestPath = `/uploads/crest-default-${(db.users.length % 6) + 1}.svg`;
     }
 
     // Admin user: if access_code is 'prisma', user becomes admin
@@ -790,9 +802,19 @@ app.post('/api/login', (req, res) => {
 });
 
 // User: Update own profile (team_name, team_crest)
-app.post('/api/profile/update', authUser, (req, res) => {
+app.post('/api/profile/update', authUser, (req, res, next) => {
+  upload.single('crest')(req, res, (err) => {
+    if (err instanceof multer.MulterError && err.code === 'LIMIT_FILE_SIZE') {
+      return res.status(400).json({ error: 'La imagen es demasiado grande. Máximo 5MB.' });
+    }
+    if (err) {
+      return res.status(400).json({ error: 'Error al subir la imagen: ' + err.message });
+    }
+    next();
+  });
+}, (req, res) => {
   try {
-    const { team_name } = req.body;
+    const { team_name, default_crest } = req.body;
     const db = readDb();
     const userId = req.user.id;
     const user = db.users.find(u => u.id === userId);
@@ -809,6 +831,8 @@ app.post('/api/profile/update', authUser, (req, res) => {
     // Handle crest upload if new file was uploaded
     if (req.file) {
       user.team_crest = '/uploads/' + req.file.filename;
+    } else if (default_crest) {
+      user.team_crest = '/uploads/' + default_crest;
     }
     
     writeDb(db).then(() => {
@@ -1328,6 +1352,60 @@ app.post('/api/admin/match', authAdmin, async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al actualizar el partido' });
+  }
+});
+
+// Admin: Add a new match to the group stage
+app.post('/api/admin/add-match', authAdmin, async (req, res) => {
+  try {
+    const { group_name, team1, team2, match_date } = req.body;
+
+    if (!group_name || !team1 || !team2 || !match_date) {
+      return res.status(400).json({ error: 'Faltan campos obligatorios' });
+    }
+
+    const db = readDb();
+    if (!db) {
+      return res.status(503).json({ error: 'Base de datos no disponible' });
+    }
+
+    // Generate a unique ID
+    const groupMatches = db.matches.filter(m => m.group_name === group_name && m.stage === 'group');
+    let maxNum = 0;
+    groupMatches.forEach(m => {
+      const parts = m.id.split('-');
+      if (parts.length === 3) {
+        const num = parseInt(parts[2], 10);
+        if (!isNaN(num) && num > maxNum) {
+          maxNum = num;
+        }
+      }
+    });
+    const newId = `G-${group_name}-${maxNum + 1}`;
+
+    const newMatch = {
+      id: newId,
+      stage: 'group',
+      group_name,
+      team1,
+      team2,
+      match_date,
+      goals1: null,
+      goals2: null,
+      status: 'scheduled'
+    };
+
+    db.matches.push(newMatch);
+    
+    // Sort matches by date
+    db.matches.sort((a, b) => new Date(a.match_date) - new Date(b.match_date));
+
+    await writeDb(db);
+
+    res.json({ success: true, match: newMatch });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al agregar el partido' });
   }
 });
 
