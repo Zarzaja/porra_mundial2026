@@ -377,10 +377,10 @@
           if (isPlayed && m.goals1 === m.goals2 && m.penalty1 != null) { s1 += ` (${m.penalty1})`; s2 += ` (${m.penalty2})`; }
 
           const label = m.id === '3RD' ? 'Tercer Puesto 🥉' : m.id === 'FINAL' ? 'Gran Final 🏆' : m.id;
-          box.innerHTML = `
-            <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.2rem;display:flex;justify-content:space-between;">
-              <span>${label}</span><span>${formatMatchDate(m.match_date).split(' ')[0]}</span>
-            </div>
+        box.innerHTML = `
+          <div style="font-size:.65rem;color:var(--text-muted);margin-bottom:.2rem;display:flex;justify-content:space-between;flex-direction:column;gap:.15rem;">
+            <span>${label}</span><span>${formatMatchDate(m.match_date)}</span>
+          </div>
             <div class="bracket-team ${t1cls}">
               <span class="bracket-team-name">${getFlag(m.team1)} ${m.team1}</span>
               <span class="bracket-score">${s1}</span>

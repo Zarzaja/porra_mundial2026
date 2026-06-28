@@ -1018,7 +1018,7 @@ app.get('/api/matches', authUser, (req, res) => {
 
   // Also fetch special predictions
   const special = db.special_predictions.find(sp => sp.user_id === userId) || { champion_team: null, top_scorer: null };
-  const specialLocked = isGroupStageFinished(db) || db.settings.special_locked;
+  const specialLocked = db.settings.special_locked; // Solo bloquear cuando el admin lo active manualmente
   const hasExistingSelection = special.champion_team !== null || special.top_scorer !== null;
 
   res.json({
@@ -1096,9 +1096,9 @@ app.post('/api/predict/special', authUser, async (req, res) => {
     const userId = req.user.id;
 
     const db = readDb();
-    const specialLocked = isGroupStageFinished(db) || db.settings.special_locked;
+    const specialLocked = db.settings.special_locked;
     if (specialLocked) {
-      return res.status(400).json({ error: 'Las predicciones especiales están bloqueadas (ha terminado la fase de grupos o el administrador lo ha bloqueado).' });
+      return res.status(400).json({ error: 'Las predicciones especiales están bloqueadas por el administrador.' });
     }
 
     let spec = db.special_predictions.find(sp => sp.user_id === userId);
