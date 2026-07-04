@@ -487,21 +487,32 @@ function initializeDatabase() {
   });
 
   // Round of 16 (8 matches)
-  for (let i = 1; i <= 8; i++) {
+  const r16Matches = [
+    { id: 'R16-1', team1: 'Canada', team2: 'Marruecos', date: '2026-07-04T17:00:00Z' },
+    { id: 'R16-2', team1: 'Paraguay', team2: 'Francia', date: '2026-07-04T21:00:00Z' },
+    { id: 'R16-3', team1: 'Brasil', team2: 'Noruega', date: '2026-07-05T20:00:00Z' },
+    { id: 'R16-4', team1: 'Mexico', team2: 'Inglaterra', date: '2026-07-06T00:00:00Z' },
+    { id: 'R16-5', team1: 'Portugal', team2: 'Espania', date: '2026-07-06T19:00:00Z' },
+    { id: 'R16-6', team1: 'Estados Unidos', team2: 'Belgica', date: '2026-07-07T00:00:00Z' },
+    { id: 'R16-7', team1: 'Argentina', team2: 'Egipto', date: '2026-07-07T16:00:00Z' },
+    { id: 'R16-8', team1: 'Suiza', team2: 'Colombia', date: '2026-07-07T20:00:00Z' }
+  ];
+
+  r16Matches.forEach(p => {
     db.matches.push({
-      id: `R16-${i}`,
+      id: p.id,
       stage: 'R16',
       group_name: null,
-      team1: `Ganador R32-${(i * 2) - 1}`,
-      team2: `Ganador R32-${i * 2}`,
+      team1: p.team1,
+      team2: p.team2,
       goals1: null,
       goals2: null,
       penalty1: null,
       penalty2: null,
-      match_date: new Date(new Date("2026-07-06T18:00:00Z").getTime() + (i * 12 * 60 * 60 * 1000)).toISOString(),
+      match_date: p.date,
       status: 'scheduled'
     });
-  }
+  });
 
   // Quarterfinals (4 matches)
   for (let i = 1; i <= 4; i++) {
@@ -1250,7 +1261,7 @@ const propagationMap = {
 
 app.post('/api/admin/match', authAdmin, async (req, res) => {
   try {
-    const { match_id, goals1, goals2, penalty1, penalty2, status, match_date } = req.body;
+    const { match_id, goals1, goals2, penalty1, penalty2, status, match_date, team1, team2 } = req.body;
     
     const isScheduled = status === 'scheduled';
     let g1 = null;
@@ -1289,6 +1300,9 @@ app.post('/api/admin/match', authAdmin, async (req, res) => {
     if (match_date) {
       match.match_date = match_date;
     }
+    
+    if (team1 !== undefined && team1 !== '') match.team1 = team1;
+    if (team2 !== undefined && team2 !== '') match.team2 = team2;
 
     // If it's a knockout stage match and score is tie, check penaltis to determine who passes
     let winner = null;

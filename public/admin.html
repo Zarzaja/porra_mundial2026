@@ -77,12 +77,16 @@
 
             <!-- Team 1 Input -->
             <div class="form-group">
+              <label for="editor-team1-name" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.25rem;">Nombre Team 1</label>
+              <input type="text" id="editor-team1-name" class="form-input" style="margin-bottom:0.5rem;">
               <label id="editor-team1-label" for="editor-goals1">Goles Team 1</label>
               <input type="number" min="0" id="editor-goals1" class="form-input">
             </div>
 
             <!-- Team 2 Input -->
             <div class="form-group">
+              <label for="editor-team2-name" style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.25rem;">Nombre Team 2</label>
+              <input type="text" id="editor-team2-name" class="form-input" style="margin-bottom:0.5rem;">
               <label id="editor-team2-label" for="editor-goals2">Goles Team 2</label>
               <input type="number" min="0" id="editor-goals2" class="form-input">
             </div>
@@ -767,6 +771,9 @@
       document.getElementById('editor-match-details').textContent = `Fase: ${match.stage} | ID Partido: ${match.id} | Fecha: ${formatMatchDate(match.match_date)}`;
       document.getElementById('editor-match-id').value = match.id;
       
+      document.getElementById('editor-team1-name').value = match.team1 || '';
+      document.getElementById('editor-team2-name').value = match.team2 || '';
+
       document.getElementById('editor-goals1').value = match.goals1 !== null ? match.goals1 : '';
       document.getElementById('editor-goals2').value = match.goals2 !== null ? match.goals2 : '';
       document.getElementById('editor-status').value = match.status;
@@ -977,6 +984,8 @@
       e.preventDefault();
       
       const id = document.getElementById('editor-match-id').value;
+      const team1 = document.getElementById('editor-team1-name').value;
+      const team2 = document.getElementById('editor-team2-name').value;
       const goals1 = document.getElementById('editor-goals1').value;
       const goals2 = document.getElementById('editor-goals2').value;
       const status = document.getElementById('editor-status').value;
@@ -989,6 +998,8 @@
 
       const body = {
         match_id: id,
+        team1,
+        team2,
         goals1,
         goals2,
         status,
