@@ -271,7 +271,7 @@ function recalculateScores(db) {
   // Write updated totals back to users list
   db.users.forEach(u => {
     if (userScores[u.id]) {
-      u.score_total = userScores[u.id].total;
+      u.score_total = userScores[u.id].total + (u.score_manual || 0);
       u.score_exact = userScores[u.id].exact;
       u.score_outcome_plus = userScores[u.id].outcomePlusGoals;
       u.score_outcome_only = userScores[u.id].outcomeOnly;
@@ -1483,12 +1483,39 @@ app.get('/api/admin/users', authAdmin, (req, res) => {
       access_code: u.access_code,
       is_admin: u.is_admin,
       score_total: u.score_total,
+      score_manual: u.score_manual || 0,
       created_at: u.created_at
     }));
     res.json({ users });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Error al obtener usuarios' });
+  }
+});
+
+// Admin: Edit manual score
+app.post('/api/admin/edit-score', authAdmin, async (req, res) => {
+  try {
+    const { target_user_id, score_manual } = req.body;
+    if (!target_user_id || score_manual === undefined) {
+      return res.status(400).json({ error: 'Faltan parámetros' });
+    }
+
+    const user = db.users.find(u => u.id === parseInt(target_user_id, 10));
+    if (!user) {
+      return res.status(404).json({ error: 'Usuario no encontrado' });
+    }
+
+    user.score_manual = parseInt(score_manual, 10) || 0;
+    
+    // Recalculate scores since score_manual is applied there
+    recalculateScores();
+    saveDb();
+    
+    res.json({ message: 'Puntuación actualizada', user });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al actualizar puntuación' });
   }
 });
 

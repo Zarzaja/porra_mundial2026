@@ -135,7 +135,10 @@
             <td style="text-align: center;" class="score-breakdown-cell">${user.score_outcome_only}</td>
             <td style="text-align: center;" class="score-breakdown-cell">${user.score_goals_only}</td>
             <td style="text-align: center; font-weight:700; color:var(--accent-gold);" class="score-breakdown-cell">${user.score_specials > 0 ? user.score_specials : '-'}</td>
-            <td style="text-align: right;" class="total-score-cell">${user.score_total} pts</td>
+            <td style="text-align: right;" class="total-score-cell">
+              ${user.score_total} pts
+              ${session && session.user.is_admin ? `<button onclick="editManualScore(${user.id}, ${user.score_manual || 0}, event)" style="margin-left:8px; font-size:0.7rem; padding:0.1rem 0.3rem;" class="btn btn-secondary">✏️</button>` : ''}
+            </td>
           `;
 
           tbody.appendChild(tr);
@@ -230,6 +233,26 @@
         closeDetailsModal();
       }
     });
+
+    // Admin function to edit manual score
+    async function editManualScore(userId, currentManualScore, event) {
+      event.stopPropagation();
+      const input = prompt('Ingresa los puntos extra (manuales) para este usuario:', currentManualScore);
+      if (input === null) return;
+      
+      const score = parseInt(input, 10);
+      if (isNaN(score)) return alert('Por favor ingresa un número válido.');
+
+      try {
+        await apiFetch('/api/admin/edit-score', {
+          method: 'POST',
+          body: JSON.stringify({ target_user_id: userId, score_manual: score })
+        });
+        loadRanking();
+      } catch (err) {
+        alert('Error: ' + err.message);
+      }
+    }
 
     // Load on startup
     loadRanking();

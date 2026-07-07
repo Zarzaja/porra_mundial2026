@@ -1029,12 +1029,12 @@
       "group_name": null,
       "team1": "Canada",
       "team2": "Marruecos",
-      "goals1": null,
-      "goals2": null,
+      "goals1": 0,
+      "goals2": 3,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-04T17:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-2",
@@ -1042,12 +1042,12 @@
       "group_name": null,
       "team1": "Paraguay",
       "team2": "Francia",
-      "goals1": null,
-      "goals2": null,
+      "goals1": 0,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-04T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-3",
@@ -1055,12 +1055,12 @@
       "group_name": null,
       "team1": "Brasil",
       "team2": "Noruega",
-      "goals1": null,
-      "goals2": null,
+      "goals1": 1,
+      "goals2": 2,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-05T20:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-4",
@@ -1068,38 +1068,38 @@
       "group_name": null,
       "team1": "Mexico",
       "team2": "Inglaterra",
-      "goals1": null,
-      "goals2": null,
+      "goals1": 2,
+      "goals2": 3,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-06T00:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-5",
       "stage": "R16",
       "group_name": null,
       "team1": "Portugal",
-      "team2": "Espania",
-      "goals1": null,
-      "goals2": null,
+      "team2": "España",
+      "goals1": 0,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-06T19:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-6",
       "stage": "R16",
       "group_name": null,
       "team1": "Estados Unidos",
-      "team2": "Belgica",
-      "goals1": null,
-      "goals2": null,
+      "team2": "Bélgica",
+      "goals1": 1,
+      "goals2": 4,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-07T00:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-7",
@@ -1107,12 +1107,12 @@
       "group_name": null,
       "team1": "Argentina",
       "team2": "Egipto",
-      "goals1": null,
-      "goals2": null,
+      "goals1": 3,
+      "goals2": 2,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-07T16:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-8",
@@ -1131,52 +1131,52 @@
       "id": "QF-1",
       "stage": "QF",
       "group_name": null,
-      "team1": "Ganador R16-1",
-      "team2": "Ganador R16-2",
+      "team1": "Francia",
+      "team2": "Marruecos",
       "goals1": null,
       "goals2": null,
       "penalty1": null,
       "penalty2": null,
-      "match_date": "2026-07-12T18:00:00.000Z",
+      "match_date": "2026-07-09T20:00:00Z",
       "status": "scheduled"
     },
     {
       "id": "QF-2",
       "stage": "QF",
       "group_name": null,
-      "team1": "Ganador R16-3",
-      "team2": "Ganador R16-4",
+      "team1": "España",
+      "team2": "Bélgica",
       "goals1": null,
       "goals2": null,
       "penalty1": null,
       "penalty2": null,
-      "match_date": "2026-07-13T18:00:00.000Z",
+      "match_date": "2026-07-10T19:00:00Z",
       "status": "scheduled"
     },
     {
       "id": "QF-3",
       "stage": "QF",
       "group_name": null,
-      "team1": "Ganador R16-5",
-      "team2": "Ganador R16-6",
+      "team1": "Noruega",
+      "team2": "Inglaterra",
       "goals1": null,
       "goals2": null,
       "penalty1": null,
       "penalty2": null,
-      "match_date": "2026-07-14T18:00:00.000Z",
+      "match_date": "2026-07-11T21:00:00Z",
       "status": "scheduled"
     },
     {
       "id": "QF-4",
       "stage": "QF",
       "group_name": null,
-      "team1": "Ganador R16-7",
-      "team2": "Ganador R16-8",
+      "team1": "Argentina",
+      "team2": "Ganador Suiza/Colombia",
       "goals1": null,
       "goals2": null,
       "penalty1": null,
       "penalty2": null,
-      "match_date": "2026-07-15T18:00:00.000Z",
+      "match_date": "2026-07-12T01:00:00Z",
       "status": "scheduled"
     },
     {
