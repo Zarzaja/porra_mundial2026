@@ -278,7 +278,7 @@
       }
       
       try {
-        await apiFetch('/api/admin/reset-all', { method: 'POST' });
+        await apiFetch('/api/admin/reset-all', 'POST', null);
         showToast('Todas las predicciones y puntos han sido reseteados correctamente', false);
         loadRanking(); // Reload ranking to see changes
       } catch (err) {
