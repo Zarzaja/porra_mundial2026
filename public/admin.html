@@ -357,6 +357,9 @@
             📤 Importar Datos
           </button>
           <input type="file" id="import-file" accept=".json" style="display:none;" onchange="importData(this)">
+          <button type="button" class="btn" onclick="resetCompetitionToQF()" style="background-color:#ef4444; border-color:#ef4444; color:white; margin-left:auto;">
+            ⚠️ Resetear Competición a QF
+          </button>
         </div>
         <p style="color:var(--text-muted); font-size:0.75rem; margin-top:0.75rem;">
           Exporta los datos antes de actualizar la app. Así podrás restaurarlos si es necesario.
@@ -629,6 +632,24 @@
       };
       reader.readAsText(file);
       fileInput.value = '';
+    }
+
+    async function resetCompetitionToQF() {
+      const confirm1 = confirm("⚠️ ¡ADVERTENCIA CRÍTICA! ⚠️\n\nEsta acción borrará permanentemente todas las predicciones de los usuarios de la base de datos y restablecerá todas las puntuaciones a 0.\n\n¿Estás seguro de que quieres continuar?");
+      if (!confirm1) return;
+
+      const confirm2 = confirm("⚠️ ¿CONFIRMACIÓN FINAL? ⚠️\n\nLos partidos anteriores (Grupos, R32 y R16) se marcarán como finalizados y la competición comenzará de nuevo a partir de los Cuartos de Final.\n\n¿Quieres proceder con el reset?");
+      if (!confirm2) return;
+
+      try {
+        const result = await apiFetch('/api/admin/reset-to-qf', 'POST');
+        showToast(result.message || 'Competición reseteada con éxito.');
+        setTimeout(() => {
+          window.location.reload();
+        }, 1500);
+      } catch (err) {
+        showToast('Error al resetear: ' + err.message, true);
+      }
     }
 
     async function loadStats() {

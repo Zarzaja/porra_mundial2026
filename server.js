@@ -1815,6 +1815,175 @@ app.post('/api/admin/special-results', authAdmin, async (req, res) => {
   }
 });
 
+// Reset competition and start fresh from Quarter-Finals
+app.post('/api/admin/reset-to-qf', authAdmin, async (req, res) => {
+  try {
+    const db = readDb();
+    if (!db) {
+      return res.status(503).json({ error: 'Base de datos no disponible' });
+    }
+
+    // 1. Wipe all match predictions
+    db.predictions = [];
+
+    // 2. Reset all special predictions
+    db.special_predictions.forEach(sp => {
+      sp.champion_team = null;
+      sp.top_scorer = null;
+      sp.points_champion = 0;
+      sp.points_top_scorer = 0;
+    });
+
+    // 3. Reset all user scores and manuals
+    db.users.forEach(u => {
+      u.score_total = 0;
+      u.score_exact = 0;
+      u.score_outcome_plus = 0;
+      u.score_outcome_only = 0;
+      u.score_goals_only = 0;
+      u.score_specials = 0;
+      u.score_manual = null;
+    });
+
+    // 4. Fill in Group Stage matches as finished
+    db.matches.forEach(m => {
+      if (m.stage === 'group') {
+        m.status = 'finished';
+        if (m.goals1 === null || m.goals1 === undefined) m.goals1 = 0;
+        if (m.goals2 === null || m.goals2 === undefined) m.goals2 = 0;
+      }
+    });
+
+    // 5. Fill in Ronda de 32 (R32) matches with realistic teams and results consistent with R16 winners
+    const r32Data = {
+      'R32-1': { team1: 'Canada', team2: 'Chequia', goals1: 2, goals2: 1 },
+      'R32-2': { team1: 'Marruecos', team2: 'Escocia', goals1: 3, goals2: 0 },
+      'R32-3': { team1: 'Paraguay', team2: 'Corea del Sur', goals1: 1, goals2: 0 },
+      'R32-4': { team1: 'Francia', team2: 'Bosnia y Herzegovina', goals1: 2, goals2: 0 },
+      'R32-5': { team1: 'Brasil', team2: 'Australia', goals1: 4, goals2: 1 },
+      'R32-6': { team1: 'Noruega', team2: 'Turquia', goals1: 2, goals2: 1 },
+      'R32-7': { team1: 'Mexico', team2: 'Costa de Marfil', goals1: 2, goals2: 0 },
+      'R32-8': { team1: 'Inglaterra', team2: 'Ecuador', goals1: 3, goals2: 1 },
+      'R32-9': { team1: 'Portugal', team2: 'Japon', goals1: 1, goals2: 0 },
+      'R32-10': { team1: 'España', team2: 'Suecia', goals1: 2, goals2: 0 },
+      'R32-11': { team1: 'Estados Unidos', team2: 'Tunez', goals1: 3, goals2: 2 },
+      'R32-12': { team1: 'Bélgica', team2: 'Iran', goals1: 2, goals2: 0 },
+      'R32-13': { team1: 'Argentina', team2: 'Cabo Verde', goals1: 4, goals2: 0 },
+      'R32-14': { team1: 'Egipto', team2: 'Uruguay', goals1: 2, goals2: 1 },
+      'R32-15': { team1: 'Suiza', team2: 'Irak', goals1: 1, goals2: 0 },
+      'R32-16': { team1: 'Colombia', team2: 'Austria', goals1: 2, goals2: 1 }
+    };
+
+    db.matches.forEach(m => {
+      if (m.stage === 'R32') {
+        const data = r32Data[m.id];
+        if (data) {
+          m.team1 = data.team1;
+          m.team2 = data.team2;
+          m.goals1 = data.goals1;
+          m.goals2 = data.goals2;
+          m.status = 'finished';
+        }
+      }
+    });
+
+    // 6. Ensure all R16 matches are finished with correct teams and scores (realistic / entered by user)
+    const r16Data = {
+      'R16-1': { team1: 'Canada', team2: 'Marruecos', goals1: 0, goals2: 3 },
+      'R16-2': { team1: 'Paraguay', team2: 'Francia', goals1: 0, goals2: 1 },
+      'R16-3': { team1: 'Brasil', team2: 'Noruega', goals1: 1, goals2: 2 },
+      'R16-4': { team1: 'Mexico', team2: 'Inglaterra', goals1: 2, goals2: 3 },
+      'R16-5': { team1: 'Portugal', team2: 'España', goals1: 0, goals2: 1 },
+      'R16-6': { team1: 'Estados Unidos', team2: 'Bélgica', goals1: 1, goals2: 4 },
+      'R16-7': { team1: 'Argentina', team2: 'Egipto', goals1: 3, goals2: 2 },
+      'R16-8': { team1: 'Suiza', team2: 'Colombia', goals1: 1, goals2: 2 }
+    };
+
+    db.matches.forEach(m => {
+      if (m.stage === 'R16') {
+        const data = r16Data[m.id];
+        if (data) {
+          m.team1 = data.team1;
+          m.team2 = data.team2;
+          m.goals1 = data.goals1;
+          m.goals2 = data.goals2;
+          m.status = 'finished';
+        }
+      }
+    });
+
+    // 7. Initialize/prepare Quarter-Finals (QF) pairings
+    const qfData = {
+      'QF-1': { team1: 'Francia', team2: 'Marruecos' },
+      'QF-2': { team1: 'España', team2: 'Bélgica' },
+      'QF-3': { team1: 'Noruega', team2: 'Inglaterra' },
+      'QF-4': { team1: 'Argentina', team2: 'Colombia' }
+    };
+
+    db.matches.forEach(m => {
+      if (m.stage === 'QF') {
+        const data = qfData[m.id];
+        if (data) {
+          m.team1 = data.team1;
+          m.team2 = data.team2;
+          m.goals1 = null;
+          m.goals2 = null;
+          m.penalty1 = null;
+          m.penalty2 = null;
+          m.status = 'scheduled';
+        }
+      }
+    });
+
+    // 8. Reset SF, 3RD, FINAL matches to scheduled placeholders
+    db.matches.forEach(m => {
+      if (m.stage === 'SF') {
+        m.goals1 = null;
+        m.goals2 = null;
+        m.penalty1 = null;
+        m.penalty2 = null;
+        m.status = 'scheduled';
+        if (m.id === 'SF-1') {
+          m.team1 = 'Ganador QF-1';
+          m.team2 = 'Ganador QF-2';
+        } else if (m.id === 'SF-2') {
+          m.team1 = 'Ganador QF-3';
+          m.team2 = 'Ganador QF-4';
+        }
+      } else if (m.stage === '3RD') {
+        m.team1 = 'Perdedor SF-1';
+        m.team2 = 'Perdedor SF-2';
+        m.goals1 = null;
+        m.goals2 = null;
+        m.penalty1 = null;
+        m.penalty2 = null;
+        m.status = 'scheduled';
+      } else if (m.stage === 'FINAL') {
+        m.team1 = 'Ganador SF-1';
+        m.team2 = 'Ganador SF-2';
+        m.goals1 = null;
+        m.goals2 = null;
+        m.penalty1 = null;
+        m.penalty2 = null;
+        m.status = 'scheduled';
+      }
+    });
+
+    db.settings.champion = null;
+    db.settings.top_scorer = null;
+    db.settings.special_locked = false;
+
+    // Recalculate all user scores (will be 0 for all since there are no predictions)
+    recalculateScores(db);
+
+    await writeDb(db);
+    res.json({ success: true, message: 'Competición reseteada correctamente. Todos los usuarios comienzan desde 0 puntos para los Cuartos de Final.' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error interno al resetear la competición' });
+  }
+});
+
 // Get predictions of all users for a locked match
 app.get('/api/match-predictions/:matchId', authUser, (req, res) => {
   const matchId = req.params.matchId;

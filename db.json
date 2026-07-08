@@ -14,7 +14,8 @@
       "score_outcome_only": 0,
       "score_goals_only": 0,
       "score_specials": 0,
-      "created_at": "2026-06-10T19:53:09.263Z"
+      "created_at": "2026-06-10T19:53:09.263Z",
+      "score_manual": null
     },
     {
       "id": 2,
@@ -30,7 +31,8 @@
       "score_outcome_only": 0,
       "score_goals_only": 0,
       "score_specials": 0,
-      "created_at": "2026-06-10T20:04:01.199Z"
+      "created_at": "2026-06-10T20:04:01.199Z",
+      "score_manual": null
     }
   ],
   "matches": [
@@ -41,9 +43,9 @@
       "team1": "Mexico",
       "team2": "Sudafrica",
       "match_date": "2026-06-11T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-A-2",
@@ -52,9 +54,9 @@
       "team1": "Corea del Sur",
       "team2": "Chequia",
       "match_date": "2026-06-12T02:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-B-1",
@@ -63,9 +65,9 @@
       "team1": "Canada",
       "team2": "Bosnia y Herzegovina",
       "match_date": "2026-06-12T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-D-1",
@@ -74,9 +76,9 @@
       "team1": "Estados Unidos",
       "team2": "Paraguay",
       "match_date": "2026-06-13T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-B-2",
@@ -85,9 +87,9 @@
       "team1": "Catar",
       "team2": "Suiza",
       "match_date": "2026-06-13T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-C-1",
@@ -96,9 +98,9 @@
       "team1": "Brasil",
       "team2": "Marruecos",
       "match_date": "2026-06-13T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-C-2",
@@ -107,9 +109,9 @@
       "team1": "Haiti",
       "team2": "Escocia",
       "match_date": "2026-06-14T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-D-2",
@@ -118,9 +120,9 @@
       "team1": "Australia",
       "team2": "Turquia",
       "match_date": "2026-06-14T04:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-E-1",
@@ -129,9 +131,9 @@
       "team1": "Alemania",
       "team2": "Curazao",
       "match_date": "2026-06-14T17:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-F-1",
@@ -140,9 +142,9 @@
       "team1": "Paises Bajos",
       "team2": "Japon",
       "match_date": "2026-06-14T20:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-E-2",
@@ -151,9 +153,9 @@
       "team1": "Costa de Marfil",
       "team2": "Ecuador",
       "match_date": "2026-06-14T23:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-F-2",
@@ -162,9 +164,9 @@
       "team1": "Suecia",
       "team2": "Tunez",
       "match_date": "2026-06-15T02:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-H-1",
@@ -173,9 +175,9 @@
       "team1": "Espania",
       "team2": "Cabo Verde",
       "match_date": "2026-06-15T16:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-G-1",
@@ -184,9 +186,9 @@
       "team1": "Belgica",
       "team2": "Egipto",
       "match_date": "2026-06-15T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-H-2",
@@ -195,9 +197,9 @@
       "team1": "Arabia Saudita",
       "team2": "Uruguay",
       "match_date": "2026-06-15T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-G-2",
@@ -206,9 +208,9 @@
       "team1": "Iran",
       "team2": "Nueva Zelanda",
       "match_date": "2026-06-16T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-K-1",
@@ -217,9 +219,9 @@
       "team1": "Portugal",
       "team2": "Republica Democratica del Congo",
       "match_date": "2026-06-16T17:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-I-1",
@@ -228,9 +230,9 @@
       "team1": "Francia",
       "team2": "Senegal",
       "match_date": "2026-06-16T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-I-2",
@@ -239,9 +241,9 @@
       "team1": "Irak",
       "team2": "Noruega",
       "match_date": "2026-06-16T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-J-1",
@@ -250,9 +252,9 @@
       "team1": "Argentina",
       "team2": "Argelia",
       "match_date": "2026-06-17T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-J-2",
@@ -261,9 +263,9 @@
       "team1": "Austria",
       "team2": "Jordania",
       "match_date": "2026-06-17T04:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-L-1",
@@ -272,9 +274,9 @@
       "team1": "Inglaterra",
       "team2": "Croacia",
       "match_date": "2026-06-17T20:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-L-2",
@@ -283,9 +285,9 @@
       "team1": "Ghana",
       "team2": "Panama",
       "match_date": "2026-06-17T23:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-K-2",
@@ -294,9 +296,9 @@
       "team1": "Uzbekistan",
       "team2": "Colombia",
       "match_date": "2026-06-18T02:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-A-3",
@@ -305,9 +307,9 @@
       "team1": "Chequia",
       "team2": "Sudafrica",
       "match_date": "2026-06-18T16:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-B-3",
@@ -316,9 +318,9 @@
       "team1": "Suiza",
       "team2": "Bosnia y Herzegovina",
       "match_date": "2026-06-18T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-B-4",
@@ -327,9 +329,9 @@
       "team1": "Canada",
       "team2": "Catar",
       "match_date": "2026-06-18T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-A-4",
@@ -338,9 +340,9 @@
       "team1": "Mexico",
       "team2": "Corea del Sur",
       "match_date": "2026-06-19T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-D-3",
@@ -349,9 +351,9 @@
       "team1": "Estados Unidos",
       "team2": "Australia",
       "match_date": "2026-06-19T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-C-3",
@@ -360,9 +362,9 @@
       "team1": "Escocia",
       "team2": "Marruecos",
       "match_date": "2026-06-19T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-C-4",
@@ -371,9 +373,9 @@
       "team1": "Brasil",
       "team2": "Haiti",
       "match_date": "2026-06-20T00:30:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-D-4",
@@ -382,9 +384,9 @@
       "team1": "Turquia",
       "team2": "Paraguay",
       "match_date": "2026-06-20T03:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-F-3",
@@ -393,9 +395,9 @@
       "team1": "Paises Bajos",
       "team2": "Suecia",
       "match_date": "2026-06-20T17:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-E-3",
@@ -404,9 +406,9 @@
       "team1": "Alemania",
       "team2": "Costa de Marfil",
       "match_date": "2026-06-20T20:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-E-4",
@@ -415,9 +417,9 @@
       "team1": "Ecuador",
       "team2": "Curazao",
       "match_date": "2026-06-21T00:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-F-4",
@@ -426,9 +428,9 @@
       "team1": "Tunez",
       "team2": "Japon",
       "match_date": "2026-06-21T04:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-H-3",
@@ -437,9 +439,9 @@
       "team1": "Espania",
       "team2": "Arabia Saudita",
       "match_date": "2026-06-21T16:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-G-3",
@@ -448,9 +450,9 @@
       "team1": "Belgica",
       "team2": "Iran",
       "match_date": "2026-06-21T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-H-4",
@@ -459,9 +461,9 @@
       "team1": "Uruguay",
       "team2": "Cabo Verde",
       "match_date": "2026-06-21T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-G-4",
@@ -470,9 +472,9 @@
       "team1": "Nueva Zelanda",
       "team2": "Egipto",
       "match_date": "2026-06-22T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-J-3",
@@ -481,9 +483,9 @@
       "team1": "Argentina",
       "team2": "Austria",
       "match_date": "2026-06-22T17:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-I-3",
@@ -492,9 +494,9 @@
       "team1": "Francia",
       "team2": "Irak",
       "match_date": "2026-06-22T21:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-I-4",
@@ -503,9 +505,9 @@
       "team1": "Noruega",
       "team2": "Senegal",
       "match_date": "2026-06-23T00:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-J-4",
@@ -514,9 +516,9 @@
       "team1": "Jordania",
       "team2": "Argelia",
       "match_date": "2026-06-23T03:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-K-3",
@@ -525,9 +527,9 @@
       "team1": "Portugal",
       "team2": "Uzbekistan",
       "match_date": "2026-06-23T17:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-L-3",
@@ -536,9 +538,9 @@
       "team1": "Inglaterra",
       "team2": "Ghana",
       "match_date": "2026-06-23T20:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-B-5",
@@ -547,9 +549,9 @@
       "team1": "Suiza",
       "team2": "Canada",
       "match_date": "2026-06-24T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-B-6",
@@ -558,9 +560,9 @@
       "team1": "Bosnia y Herzegovina",
       "team2": "Catar",
       "match_date": "2026-06-24T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-L-4",
@@ -569,9 +571,9 @@
       "team1": "Panama",
       "team2": "Croacia",
       "match_date": "2026-06-24T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-C-5",
@@ -580,9 +582,9 @@
       "team1": "Escocia",
       "team2": "Brasil",
       "match_date": "2026-06-24T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-C-6",
@@ -591,9 +593,9 @@
       "team1": "Marruecos",
       "team2": "Haiti",
       "match_date": "2026-06-24T22:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-A-5",
@@ -602,9 +604,9 @@
       "team1": "Sudafrica",
       "team2": "Corea del Sur",
       "match_date": "2026-06-25T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-A-6",
@@ -613,9 +615,9 @@
       "team1": "Chequia",
       "team2": "Mexico",
       "match_date": "2026-06-25T01:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-E-5",
@@ -624,9 +626,9 @@
       "team1": "Ecuador",
       "team2": "Alemania",
       "match_date": "2026-06-25T20:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-E-6",
@@ -635,9 +637,9 @@
       "team1": "Curazao",
       "team2": "Costa de Marfil",
       "match_date": "2026-06-25T20:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-F-5",
@@ -646,9 +648,9 @@
       "team1": "Tunez",
       "team2": "Paises Bajos",
       "match_date": "2026-06-25T23:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-F-6",
@@ -657,9 +659,9 @@
       "team1": "Japon",
       "team2": "Suecia",
       "match_date": "2026-06-25T23:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-D-5",
@@ -668,9 +670,9 @@
       "team1": "Paraguay",
       "team2": "Australia",
       "match_date": "2026-06-26T02:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-D-6",
@@ -679,9 +681,9 @@
       "team1": "Turquia",
       "team2": "Estados Unidos",
       "match_date": "2026-06-26T02:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-I-5",
@@ -690,9 +692,9 @@
       "team1": "Noruega",
       "team2": "Francia",
       "match_date": "2026-06-26T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-I-6",
@@ -701,9 +703,9 @@
       "team1": "Senegal",
       "team2": "Irak",
       "match_date": "2026-06-26T19:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-H-5",
@@ -712,9 +714,9 @@
       "team1": "Uruguay",
       "team2": "Espania",
       "match_date": "2026-06-27T00:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-H-6",
@@ -723,9 +725,9 @@
       "team1": "Cabo Verde",
       "team2": "Arabia Saudita",
       "match_date": "2026-06-27T00:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-G-5",
@@ -734,9 +736,9 @@
       "team1": "Egipto",
       "team2": "Iran",
       "match_date": "2026-06-27T03:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-G-6",
@@ -745,9 +747,9 @@
       "team1": "Nueva Zelanda",
       "team2": "Belgica",
       "match_date": "2026-06-27T03:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-L-5",
@@ -756,9 +758,9 @@
       "team1": "Panama",
       "team2": "Inglaterra",
       "match_date": "2026-06-27T21:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-L-6",
@@ -767,9 +769,9 @@
       "team1": "Croacia",
       "team2": "Ghana",
       "match_date": "2026-06-27T21:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-K-4",
@@ -778,9 +780,9 @@
       "team1": "Republica Democratica del Congo",
       "team2": "Uzbekistan",
       "match_date": "2026-06-27T23:30:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-K-5",
@@ -789,9 +791,9 @@
       "team1": "Colombia",
       "team2": "Portugal",
       "match_date": "2026-06-27T23:30:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-J-5",
@@ -800,9 +802,9 @@
       "team1": "Argelia",
       "team2": "Austria",
       "match_date": "2026-06-28T02:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "G-J-6",
@@ -811,217 +813,217 @@
       "team1": "Jordania",
       "team2": "Argentina",
       "match_date": "2026-06-28T02:00:00Z",
-      "goals1": null,
-      "goals2": null,
-      "status": "scheduled"
+      "goals1": 0,
+      "goals2": 0,
+      "status": "finished"
     },
     {
       "id": "R32-1",
       "stage": "R32",
       "group_name": null,
-      "team1": "2º Grupo A",
-      "team2": "2º Grupo B",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Canada",
+      "team2": "Chequia",
+      "goals1": 2,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-06-28T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-2",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo C",
-      "team2": "2º Grupo F",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Marruecos",
+      "team2": "Escocia",
+      "goals1": 3,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-06-28T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-3",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo E",
-      "team2": "3º Grupo A/B/C/D/F",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Paraguay",
+      "team2": "Corea del Sur",
+      "goals1": 1,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-06-29T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-4",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo F",
-      "team2": "2º Grupo C",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Francia",
+      "team2": "Bosnia y Herzegovina",
+      "goals1": 2,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-06-29T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-5",
       "stage": "R32",
       "group_name": null,
-      "team1": "2º Grupo E",
-      "team2": "2º Grupo I",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Brasil",
+      "team2": "Australia",
+      "goals1": 4,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-06-30T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-6",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo I",
-      "team2": "3º Grupo C/D/F/G/H",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Noruega",
+      "team2": "Turquia",
+      "goals1": 2,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-06-30T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-7",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo A",
-      "team2": "3º Grupo C/E/F/H/I",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Mexico",
+      "team2": "Costa de Marfil",
+      "goals1": 2,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-01T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-8",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo L",
-      "team2": "3º Grupo E/H/I/J/K",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Inglaterra",
+      "team2": "Ecuador",
+      "goals1": 3,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-01T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-9",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo G",
-      "team2": "3º Grupo A/E/H/I/J",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Portugal",
+      "team2": "Japon",
+      "goals1": 1,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-02T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-10",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo D",
-      "team2": "3º Grupo B/E/F/I/J",
-      "goals1": null,
-      "goals2": null,
+      "team1": "España",
+      "team2": "Suecia",
+      "goals1": 2,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-02T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-11",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo H",
-      "team2": "2º Grupo J",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Estados Unidos",
+      "team2": "Tunez",
+      "goals1": 3,
+      "goals2": 2,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-03T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-12",
       "stage": "R32",
       "group_name": null,
-      "team1": "2º Grupo K",
-      "team2": "2º Grupo L",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Bélgica",
+      "team2": "Iran",
+      "goals1": 2,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-03T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-13",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo B",
-      "team2": "3º Grupo E/F/G/I/J",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Argentina",
+      "team2": "Cabo Verde",
+      "goals1": 4,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-04T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-14",
       "stage": "R32",
       "group_name": null,
-      "team1": "2º Grupo D",
-      "team2": "2º Grupo G",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Egipto",
+      "team2": "Uruguay",
+      "goals1": 2,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-04T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-15",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo J",
-      "team2": "2º Grupo H",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Suiza",
+      "team2": "Irak",
+      "goals1": 1,
+      "goals2": 0,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-05T18:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R32-16",
       "stage": "R32",
       "group_name": null,
-      "team1": "1º Grupo K",
-      "team2": "3º Grupo D/E/I/J/L",
-      "goals1": null,
-      "goals2": null,
+      "team1": "Colombia",
+      "team2": "Austria",
+      "goals1": 2,
+      "goals2": 1,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-05T21:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "R16-1",
@@ -1232,22 +1234,7 @@
       "status": "scheduled"
     }
   ],
-  "predictions": [
-    {
-      "user_id": 2,
-      "match_id": "G-A-1",
-      "goals1": 2,
-      "goals2": 1,
-      "points": 0
-    },
-    {
-      "user_id": 1,
-      "match_id": "G-A-1",
-      "goals1": 3,
-      "goals2": 1,
-      "points": 0
-    }
-  ],
+  "predictions": [],
   "special_predictions": [
     {
       "user_id": 1,
