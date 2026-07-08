@@ -24,7 +24,10 @@
             Haz clic en cualquiera de tus amigos para ver qué pronosticó en los partidos ya jugados o bloqueados.
           </p>
         </div>
-        <button class="btn btn-secondary" onclick="loadRanking()">🔄 Actualizar Tabla</button>
+        <div style="display:flex; gap:0.75rem;">
+          <button class="btn btn-secondary" onclick="loadRanking()">🔄 Actualizar Tabla</button>
+          <button id="btn-reset-all" class="btn btn-secondary" style="background-color:#ef4444; border-color:#ef4444; display:none;" onclick="resetAllPredictions()">🗑️ Resetear Todo</button>
+        </div>
       </div>
 
       <div class="leaderboard-table-wrapper">
@@ -81,9 +84,15 @@
 
   <script>
     let currentUserId = null;
+    let isAdmin = false;
     const session = getSession();
     if (session) {
       currentUserId = session.user.id;
+      isAdmin = session.user.is_admin;
+      // Show reset button only to admins
+      if (isAdmin) {
+        document.getElementById('btn-reset-all').style.display = 'inline-block';
+      }
     }
 
     async function loadRanking() {
@@ -258,6 +267,22 @@
         loadRanking();
       } catch (err) {
         alert('Error: ' + err.message);
+      }
+    }
+
+    async function resetAllPredictions() {
+      // Confirm before resetting
+      const confirmed = confirm('¿Estás ABSOLUTAMENTE SEGURO de que quieres resetear TODAS las predicciones y puntos a cero? Esta acción NO SE PUEDE DESHACER.');
+      if (!confirmed) {
+        return;
+      }
+      
+      try {
+        await apiFetch('/api/admin/reset-all', { method: 'POST' });
+        showToast('Todas las predicciones y puntos han sido reseteados correctamente', false);
+        loadRanking(); // Reload ranking to see changes
+      } catch (err) {
+        showToast(err.message, true);
       }
     }
 

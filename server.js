@@ -1694,6 +1694,36 @@ app.post('/api/admin/recalculate', authAdmin, async (req, res) => {
   }
 });
 
+// Admin: Reset all predictions and points to zero
+app.post('/api/admin/reset-all', authAdmin, async (req, res) => {
+  try {
+    const db = readDb();
+    
+    // Reset all predictions (match predictions)
+    db.predictions = [];
+    
+    // Reset all special predictions
+    db.special_predictions = [];
+    
+    // Reset all user scores (including manual score)
+    db.users.forEach(user => {
+      user.score_exact = 0;
+      user.score_outcome_plus = 0;
+      user.score_outcome_only = 0;
+      user.score_goals_only = 0;
+      user.score_specials = 0;
+      user.score_manual = 0;
+      user.score_total = 0;
+    });
+    
+    await writeDb(db);
+    res.json({ success: true, message: 'Todas las predicciones y puntos han sido reseteados a cero correctamente' });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Error al resetear predicciones y puntos' });
+  }
+});
+
 // Admin: Set teams for Round of 32 (called when group stage finishes)
 app.post('/api/admin/r32-teams', authAdmin, async (req, res) => {
   try {
