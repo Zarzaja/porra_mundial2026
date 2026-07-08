@@ -137,7 +137,7 @@
             <td style="text-align: center; font-weight:700; color:var(--accent-gold);" class="score-breakdown-cell">${user.score_specials > 0 ? user.score_specials : '-'}</td>
             <td style="text-align: right;" class="total-score-cell">
               ${user.score_total} pts
-              ${session && session.user.is_admin ? `<button onclick="editManualScore(${user.id}, ${user.score_manual || 0}, event)" style="margin-left:8px; font-size:0.7rem; padding:0.1rem 0.3rem;" class="btn btn-secondary">✏️</button>` : ''}
+              ${session && session.user.is_admin ? `<button onclick="editManualScore(${user.id}, ${user.score_manual !== null ? user.score_manual : 'null'}, event)" style="margin-left:8px; font-size:0.7rem; padding:0.1rem 0.3rem;" class="btn btn-secondary">✏️</button>` : ''}
             </td>
           `;
 
@@ -234,14 +234,21 @@
       }
     });
 
-    // Admin function to edit manual score
+    // Admin function to edit manual score (override total score or clear it)
     async function editManualScore(userId, currentManualScore, event) {
       event.stopPropagation();
-      const input = prompt('Ingresa los puntos extra (manuales) para este usuario:', currentManualScore);
+      const promptMsg = currentManualScore !== null
+        ? `Ingresa los puntos totales para este usuario (actualmente anulado con ${currentManualScore} pts). Deja vacío para calcular automáticamente:`
+        : 'Ingresa los puntos totales para este usuario (actualmente calculado de forma automática). Deja vacío para calcular automáticamente:';
+      
+      const input = prompt(promptMsg, currentManualScore !== null ? currentManualScore : '');
       if (input === null) return;
       
-      const score = parseInt(input, 10);
-      if (isNaN(score)) return alert('Por favor ingresa un número válido.');
+      let score = null;
+      if (input.trim() !== '') {
+        score = parseInt(input, 10);
+        if (isNaN(score) || score < 0) return alert('Por favor ingresa un número entero válido (mayor o igual a 0).');
+      }
 
       try {
         await apiFetch('/api/admin/edit-score', {

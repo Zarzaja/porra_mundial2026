@@ -224,7 +224,7 @@ function recalculateScores(db) {
 
   // Calculate match points
   db.matches.forEach(match => {
-    if (match.status === 'played') {
+    if (match.status === 'played' || match.status === 'finished') {
       db.predictions.forEach(pred => {
         if (pred.match_id === match.id) {
           const pts = calculatePoints(pred.goals1, pred.goals2, match.goals1, match.goals2);
@@ -271,7 +271,11 @@ function recalculateScores(db) {
   // Write updated totals back to users list
   db.users.forEach(u => {
     if (userScores[u.id]) {
-      u.score_total = userScores[u.id].total + (u.score_manual || 0);
+      if (u.score_manual !== undefined && u.score_manual !== null) {
+        u.score_total = u.score_manual;
+      } else {
+        u.score_total = userScores[u.id].total;
+      }
       u.score_exact = userScores[u.id].exact;
       u.score_outcome_plus = userScores[u.id].outcomePlusGoals;
       u.score_outcome_only = userScores[u.id].outcomeOnly;
@@ -993,7 +997,7 @@ function isGroupStageFinished(db) {
   // Check if all group stage matches are completed
   const groupMatches = db.matches.filter(m => m.stage === 'group');
   if (groupMatches.length === 0) return false;
-  return groupMatches.every(m => m.status === 'played' || m.status === 'completed');
+  return groupMatches.every(m => m.status === 'played' || m.status === 'completed' || m.status === 'finished');
 }
 
 // Get all matches with current user's predictions
@@ -1007,7 +1011,7 @@ app.get('/api/matches', authUser, (req, res) => {
     
     // For regular users, hide official result until match is completed
     // Admin sees all results
-    const matchIsCompleted = m.status === 'played' || m.status === 'completed';
+    const matchIsCompleted = m.status === 'played' || m.status === 'completed' || m.status === 'finished';
     const showResult = isAdmin || matchIsCompleted;
 
     return {
@@ -1155,6 +1159,7 @@ app.get('/api/ranking', (req, res) => {
       score_outcome_only: u.score_outcome_only || 0,
       score_goals_only: u.score_goals_only || 0,
       score_specials: u.score_specials || 0,
+      score_manual: u.score_manual !== undefined ? u.score_manual : null,
       specials: {
         champion: spec.champion_team,
         top_scorer: spec.top_scorer
@@ -1186,7 +1191,7 @@ app.get('/api/user-predictions/:targetUserId', authUser, (req, res) => {
     const pred = targetPreds.find(p => p.match_id === m.id);
     const isLocked = isMatchLocked(m);
 
-    if (pred && (isLocked || m.status === 'played')) {
+    if (pred && (isLocked || m.status === 'played' || m.status === 'finished')) {
       lockedPreds.push({
         match_id: m.id,
         team1: m.team1,
@@ -1497,20 +1502,21 @@ app.get('/api/admin/users', authAdmin, (req, res) => {
 app.post('/api/admin/edit-score', authAdmin, async (req, res) => {
   try {
     const { target_user_id, score_manual } = req.body;
-    if (!target_user_id || score_manual === undefined) {
+    if (!target_user_id) {
       return res.status(400).json({ error: 'Faltan parámetros' });
     }
 
+    const db = readDb();
     const user = db.users.find(u => u.id === parseInt(target_user_id, 10));
     if (!user) {
       return res.status(404).json({ error: 'Usuario no encontrado' });
     }
 
-    user.score_manual = parseInt(score_manual, 10) || 0;
+    user.score_manual = (score_manual === null || score_manual === undefined) ? null : parseInt(score_manual, 10);
     
     // Recalculate scores since score_manual is applied there
-    recalculateScores();
-    saveDb();
+    recalculateScores(db);
+    await writeDb(db);
     
     res.json({ message: 'Puntuación actualizada', user });
   } catch (err) {
@@ -1746,7 +1752,7 @@ app.post('/api/admin/prediction', authAdmin, async (req, res) => {
     }
 
     // Recalculate points if match is already played
-    if (match.status === 'played') {
+    if (match.status === 'played' || match.status === 'finished') {
       recalculateScores(db);
     }
 
@@ -1817,7 +1823,7 @@ app.get('/api/match-predictions/:matchId', authUser, (req, res) => {
   if (!match) return res.status(404).json({ error: 'Partido no encontrado' });
 
   const isLocked = isMatchLocked(match);
-  if (!isLocked && match.status !== 'played') {
+  if (!isLocked && match.status !== 'played' && match.status !== 'finished') {
     return res.status(400).json({ error: 'Las predicciones de este partido son privadas hasta que comience el partido.' });
   }
 

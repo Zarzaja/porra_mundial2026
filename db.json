@@ -1120,12 +1120,12 @@
       "group_name": null,
       "team1": "Suiza",
       "team2": "Colombia",
-      "goals1": null,
-      "goals2": null,
+      "goals1": 1,
+      "goals2": 2,
       "penalty1": null,
       "penalty2": null,
       "match_date": "2026-07-07T20:00:00Z",
-      "status": "scheduled"
+      "status": "finished"
     },
     {
       "id": "QF-1",
@@ -1171,7 +1171,7 @@
       "stage": "QF",
       "group_name": null,
       "team1": "Argentina",
-      "team2": "Ganador Suiza/Colombia",
+      "team2": "Colombia",
       "goals1": null,
       "goals2": null,
       "penalty1": null,
