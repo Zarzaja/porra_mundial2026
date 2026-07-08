@@ -363,7 +363,7 @@
         rMatches.forEach(m => {
           const box = document.createElement('div');
           box.className = 'bracket-match';
-          const isPlayed = m.status === 'played';
+          const isPlayed = m.status === 'played' || m.status === 'finished' || m.status === 'completed';
           const isLocked = m.is_locked;
           const pred = m.prediction;
           const isPlaceholder = ['Grupo','Ganador','Perdedor'].some(w => m.team1.includes(w) || m.team2.includes(w));
@@ -436,7 +436,7 @@
         document.getElementById('modal-match-title').textContent = `${m.team1} vs ${m.team2}`;
         document.getElementById('modal-match-details').textContent =
           (m.stage === 'group' ? `Grupo ${m.group_name}` : 'Eliminatorias') +
-          ' | Resultado: ' + (m.status === 'played' ? `${m.goals1} - ${m.goals2}` : 'No jugado');
+          ' | Resultado: ' + ((m.status === 'played' || m.status === 'finished' || m.status === 'completed') ? `${m.goals1} - ${m.goals2}` : 'No jugado');
 
         listEl.innerHTML = '';
         data.predictions.sort((a,b) => (b.prediction?.points ?? -1) - (a.prediction?.points ?? -1));
