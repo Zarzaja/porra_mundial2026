@@ -224,7 +224,7 @@ function recalculateScores(db) {
 
   // Calculate match points
   db.matches.forEach(match => {
-    if (match.status === 'played' || match.status === 'finished') {
+    if (match.status === 'played' || match.status === 'finished' || match.status === 'completed') {
       db.predictions.forEach(pred => {
         if (pred.match_id === match.id) {
           const pts = calculatePoints(pred.goals1, pred.goals2, match.goals1, match.goals2);
@@ -1715,6 +1715,9 @@ app.post('/api/admin/reset-all', authAdmin, async (req, res) => {
       user.score_manual = 0;
       user.score_total = 0;
     });
+    
+    // Recalculate to ensure consistency
+    recalculateScores(db);
     
     await writeDb(db);
     res.json({ success: true, message: 'Todas las predicciones y puntos han sido reseteados a cero correctamente' });
